@@ -1,0 +1,26 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Docling Converter: Core Development Rules
+
+- **Format-Specific Pipelines**: Always implement dedicated, optimized conversion pipelines for each file format (e.g., PDF, HTML). The system must detect the input format and dispatch the appropriate pipeline to maximize quality and leverage format-specific features (like `PdfFormatOption`). Do not sacrifice precision for generic code.
+
+- **Scalable Architecture**: Adhere to a modular project structure with a central CLI entry point ([main.py](mdc:main.py)) and separate, self-contained pipeline classes in a `pipelines` directory (subdirectory of `src`). This ensures the system is extensible to new file formats and processing strategies in the future.
+
+- **Prioritize Information Fidelity**: Chunking strategies must prioritize avoiding information loss. The default approach should be to consolidate small or low-information chunks with their neighbors, guided by token limits, rather than discarding them.
+
+- **Leverage Ecosystem Integrations**: When integrating with external tools (like LLMs), prefer documented, framework-native integrations (e.g., `langchain-docling` as seen in the official examples) over custom implementations. This ensures alignment with best practices and maintainability.
+
+- **Python Environment**: This is a Python 3.12 project using `uv` for package management. Requirements are defined in [pyproject.toml](mdc:pyproject.toml) and [uv.lock](mdc:uv.lock). `ruff` is used for linting and enforcing type usage. Adhere to coding style best practices to avoid linting errors. 
+
+- **Coding Style**: Always use types. `ruff` will otherwise mark functions or variables without types as error.
+
+- **Development Progress**: The progress i documented in [development.md](mdc:development.md), which you should update after completed tasks or changed requirements or plans! 
+
+- **Execute from Project Root**: NEVER `cd` into subdirectories to run scripts or read files or such. You can do this from the root directory. Changing directories will only lead to confusion. 
+
+- **Test systematically**: All test script should be placed in the the `tests\` directory. Always adhere to pytest standards (cf. [pyproject.toml](mdc:pyproject.toml)) and best practices
+
+

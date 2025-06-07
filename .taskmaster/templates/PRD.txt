@@ -1,114 +1,199 @@
-# PRD: Advanced Document Conversion & Synthesis Pipeline
+<context>
+# Overview  
+The Document Conversion Pipeline is a Python-based tool that transforms source files (PDF, HTML, etc.) into high-quality, LLM-friendly Markdown chunks. It addresses the common problem of poorly structured document conversion that leads to information loss and suboptimal chunking for LLM consumption. This tool is designed for developers and data scientists who need to prepare documents for retrieval-augmented generation (RAG) systems.
 
-## 1. Vision & Mission
+# Core Features  
+## Intelligent Chunk Management
+- **Token-based chunking**: Uses precise token counting (not character-based) for optimal chunk sizing
+- **Smart consolidation**: Merges small chunks with neighbors to prevent information loss
+- **Configurable parameters**: chunk_size (2048 tokens), min_tokens (200), chunk_overlap (100)
 
-To build an advanced, modular, and extensible document conversion pipeline that transforms source files (PDF, HTML, etc.) into high-quality, LLM-friendly Markdown. The system will prioritize information fidelity and leverage format-specific optimizations. It will be designed with a forward-looking architecture to optionally incorporate a local Large Language Model (LLM) for intelligent content synthesis and refinement.
+## Format-Specific Pipelines
+- **PDF Pipeline**: Optimized for PDF documents with table structure preservation
+- **HTML Pipeline**: Maintains document structure and formatting during conversion
+- **Extensible Architecture**: Abstract base class allows easy addition of new format handlers
 
-## 2. Core Principles
+## Research-Backed Configuration
+- Parameters based on industry best practices from Unstructured.io, Pinecone, and Docling documentation
+- Token-based approach aligns with embedding model constraints
+- Avoids redundant parameters and over-engineering
 
-- **Maximal Information Fidelity**: The system must be architected to prevent the loss of information. Small or fragmented content will be intelligently consolidated, not discarded.
-- **Format-Specific Optimization**: The pipeline will not use a one-size-fits-all approach. It will detect the input file type and dynamically dispatch a dedicated, optimized processing pipeline to extract the best possible structured output from each source format.
-- **Scalable & Maintainable Architecture**: The codebase will be refactored from a single script into a professional, modular Python package. This ensures maintainability and makes it easy to add support for new file formats or processing steps in the future.
+# User Experience  
+## User Personas
+- **Data Scientists**: Need clean, well-structured documents for RAG systems
+- **Developers**: Require reliable document conversion for their applications
+- **Researchers**: Want to preserve all information while making it LLM-friendly
 
-## 3. Proposed Project Structure
+## Key User Flows
+1. **Basic Conversion**: User provides PDF/HTML file → System converts to markdown chunks
+2. **Batch Processing**: User processes multiple files → System handles each with appropriate pipeline
+3. **Configuration Override**: User adjusts chunk parameters → System applies custom settings
 
-To support our goals, the project will be reorganized as follows:
-
+## UI/UX Considerations
+- Clear CLI interface with progress indicators
+- Informative error messages for troubleshooting
+- Simple configuration with sensible defaults
+</context>
+<PRD>
+# Technical Architecture  
+## System Components
+### Core Package Structure
 ```
-research/
-├── input/                  # Source documents (PDFs, HTML, etc.)
-├── output/                 # Processed markdown files
-├── docling_converter/      # Main application package
+converter/
+├── __init__.py
+├── config.py           # Dataclass-based configuration
+├── pipelines/
 │   ├── __init__.py
-│   ├── main.py             # CLI entry point (using Typer/Click)
-│   ├── config.py           # Centralized configuration (chunk sizes, model IDs)
-│   ├── pipelines/
-│   │   ├── __init__.py
-│   │   ├── base_pipeline.py  # Abstract base class for all pipelines
-│   │   ├── pdf_pipeline.py   # PDF-specific logic and optimizations
-│   │   ├── html_pipeline.py  # HTML-specific logic
-│   │   └── ...             # Future pipelines for other formats
-│   ├── utils.py            # Shared helper functions (e.g., advanced chunk merging)
-│   └── llm_refiner.py      # (Phase 2) Logic for interacting with the local LLM
-├── pyproject.toml          # Project dependencies
-├── README.md
-└── ...
+│   ├── base.py        # Abstract base class (COMPLETE)
+│   ├── pdf.py         # PDF-specific pipeline
+│   └── html.py        # HTML-specific pipeline
+├── utils.py           # Chunk consolidation utilities
+└── main.py            # CLI entry point
 ```
 
----
+### Key Classes
+- **Config**: Simple dataclass with chunk_size, min_tokens, chunk_overlap
+- **BasePipeline**: Abstract class defining process() and supported_extensions
+- **PDFPipeline/HTMLPipeline**: Format-specific implementations
+- **CLI**: Typer-based command-line interface
 
-## 4. Phase 1: Foundational Refactoring & Optimization
+## Data Models
+- **Configuration**: Token-based parameters (no character-based filtering)
+- **Chunks**: List of markdown strings with metadata
+- **Pipeline Interface**: Input Path → List[str] output
 
-This phase focuses on building a robust, non-LLM pipeline that corrects the shortcomings of the current script.
+## APIs and Integrations
+- **Docling**: Core document conversion library
+- **Transformers**: HuggingFace tokenizers for precise token counting
+- **Rich**: Console output and progress tracking
+- **Typer**: CLI framework
 
-### 4.1. Intelligent Chunk Consolidation
+## Infrastructure Requirements
+- Python 3.12+
+- uv package manager
+- Minimal dependencies (docling, transformers, typer, rich)
 
-The current filtering of small chunks is too aggressive and leads to data loss. The new strategy will be:
+# Development Roadmap  
+## Phase 1: Core Document Conversion Pipeline (Current Phase)
+### Completed (36% - Tasks 1-4)
+1. ✅ Project structure and package setup
+2. ✅ Dependency configuration with modern tooling
+3. ✅ Research-based configuration management
+4. ✅ Abstract base pipeline class
 
-1.  Perform an initial chunking pass using Docling's `HybridChunker`.
-2.  Implement a `consolidate_chunks` function in `utils.py`. This function will iterate through the chunks:
-    - If a chunk is below `MIN_TOKENS`, it will be marked for merging.
-    - It will be merged with its adjacent neighbor (previous or next), prioritizing the merge that results in a more balanced final chunk size, without exceeding `MAX_TOKENS`.
-    - This ensures that short but important content (prompts, short answers, list items) is preserved by being attached to a neighbor.
+### Remaining MVP Requirements
+5. **Chunk Consolidation** (Task 5)
+   - Port and simplify merge_small_trailing_chunks from existing code
+   - Implement is_chunk_useful with token-based filtering only
 
-### 4.2. Format-Specific Pipeline Implementation
+6. **PDF Pipeline** (Task 6)  
+   - Inherit from BasePipeline
+   - Configure Docling with PdfFormatOption
+   - Implement basic process() method
 
-The core of the refactoring is the move to a pipeline-based architecture.
+7. **HTML Pipeline** (Task 7)
+   - Inherit from BasePipeline  
+   - Use default Docling HTML settings
+   - Implement basic process() method
 
-1.  **`base_pipeline.py`**: An abstract base class `BasePipeline` will define the required interface, e.g., a `process()` method.
-2.  **`pdf_pipeline.py`**: The `PdfPipeline` will be implemented to properly use `PdfFormatOption`, re-enabling optimizations for table structure recognition and other PDF-specific features.
-3.  **`html_pipeline.py`**: The `HtmlPipeline` will handle HTML files. Initially, it can use the default Docling converter settings, which are already well-optimized for HTML.
-4.  **`main.py`**: The main CLI entry point will:
-    - Accept a file path as an argument.
-    - Detect the file's extension (`.pdf`, `.html`, etc.).
-    - Instantiate the corresponding pipeline class (`PdfPipeline`, `HtmlPipeline`).
-    - Call the `process()` method on the instantiated pipeline object.
+8. **Format Detection** (Task 8)
+   - Simple extension-based routing
+   - Pipeline factory pattern
 
----
+9. **CLI Implementation** (Task 9)
+   - Basic Typer app with file argument
+   - Progress indicators using Rich
+   - Error handling
 
-## 5. Phase 2: AI-Augmented Content Synthesis
+10. **Output Generation** (Task 10)
+    - Save chunks to output/filename/chunk_NNN.md
+    - Add metadata headers to each chunk
 
-This phase introduces an optional, powerful refinement step using a local LLM. It assumes Phase 1 is complete. The goal is to transform a set of chunks into a single, coherent, and beautifully formatted Markdown document.
+11. **Basic Testing** (Tasks 11, 14 simplified)
+    - Unit tests for core components
+    - Integration test with sample files
 
-### 5.1. The Role of the LLM & Impact on Chunking
+## Phase 2: AI-Augmented Content Synthesis (Future)
+### LLM Integration Features
+- **--refine flag**: Optional LLM-based document synthesis
+- **Local LLM Support**: Mistral-7B or similar via LangChain
+- **Intelligent Synthesis**: Combine chunks into coherent documents
+- **Prompt Engineering**: Specialized prompts for document refinement
 
-With an LLM for refinement, the purpose of the initial "chunking" shifts. It's no longer about producing human-readable final chunks, but about creating logically-grouped "information blocks" for the LLM. We can likely relax the chunking rules slightly, as the LLM's job is to stitch them together perfectly. The `HybridChunker` remains an excellent choice for this task as it respects semantic boundaries.
+### Technical Approach
+- Use langchain-docling for ecosystem integration
+- OpenAI-compatible local server (Ollama/vLLM)
+- Streaming support for large documents
+- Configurable model selection
 
-### 5.2. Recommended Model & Integration Strategy
+# Logical Dependency Chain
+## Foundation (Complete)
+1. Project structure → Enable modular development
+2. Dependencies → Provide required libraries  
+3. Configuration → Define system parameters
+4. Base Pipeline → Establish common interface
 
-- **Model**: **Mistral-7B-Instruct** (or a similar high-performing 7B model). It offers an excellent balance of performance and resource requirements and can be effectively run with 8-bit quantization on a 12GB VRAM GPU. It excels at following complex instructions for formatting and synthesis.
-- **Integration**: We will use the **`langchain-docling`** and **`langchain`** libraries. As you noted, this is the documented, best-practice approach within the Docling ecosystem. The LLM can be exposed via any OpenAI-compatible local server (like Ollama, vLLM, or TGW), and we will use LangChain's `ChatOpenAI` or a similar client to interact with it, simply by pointing the client to the local server's URL. This decouples our code from the specific server implementation.
+## Core Pipeline (Current Focus)
+5. Chunk utilities → Enable smart consolidation
+6. Format pipelines → Process specific file types
+7. Format detection → Route files correctly
+8. CLI → User interaction point
+9. Output → Save results
 
-### 5.3. The `--refine` Workflow
+## Testing & Polish
+10. Error handling → Robust operation
+11. Testing → Ensure reliability
+12. Documentation → Enable adoption
 
-A new `--refine` flag will be added to the CLI. When active:
+## Future Enhancement (Phase 2)
+- LLM integration builds on stable Phase 1
+- Requires all core components functioning
+- Optional enhancement, not required for MVP
 
-1.  The appropriate file pipeline (e.g., `PdfPipeline`) runs its conversion and chunking process as normal.
-2.  Instead of saving the individual chunks, the pipeline gathers the text content of all generated chunks.
-3.  This list of text content is passed to a new function: `refine_document(content: list[str])` in `llm_refiner.py`.
-4.  `refine_document` uses LangChain to:
-    - Construct a detailed prompt using the content.
-    - Send the request to the local LLM endpoint.
-    - Receive the single, synthesized Markdown string.
-5.  The `main.py` script saves this final string to a single file, e.g., `output/my_document/document_refined.md`.
+# Validation and Sense-Checking
+## Pre-Implementation Checks
+- Does this task align with Phase 1 MVP scope?
+- Are we reusing insights from existing code?
+- Is the implementation appropriately simple?
+- Have we checked for over-engineering?
 
-### 5.4. Proposed System Prompt for LLM Refinement
+## Post-Implementation Validation
+- Does the code follow our established patterns?
+- Are we using research-backed parameters?
+- Is the solution extensible without being complex?
+- Have we avoided premature optimization?
 
-```markdown
-You are an expert technical writer and document synthesist. Your task is to transform a series of raw text chunks, extracted from a source document, into a single, clean, coherent, and well-structured Markdown document.
+# Risks and Mitigations  
+## Technical Challenges
+- **Risk**: Complex PDF structures may fail conversion
+- **Mitigation**: Fallback to HierarchicalChunker, save as single file if needed
 
-**Your Instructions:**
+- **Risk**: Token counting performance with large documents
+- **Mitigation**: Cache tokenizer, process in streaming fashion
 
-1.  **Synthesize, Don't Summarize**: Combine all provided chunks into a single narrative. Do not leave out any information, especially code blocks, user questions, or specific details. The goal is a complete and faithful reconstruction.
-2.  **Impose Logical Structure**: Analyze the content and apply appropriate Markdown formatting. Use headings (`#`, `##`), subheadings, bullet points (`-`), numbered lists, and bold text to create a clear and readable hierarchy.
-3.  **Maintain Original Intent**: Preserve the original tone and logical flow of the content. If the source is a conversation, maintain the turn-by-turn structure.
-4.  **Clean Up Artifacts**: Remove any repetitive headers, footers, or conversion artifacts that may appear in the chunks. Ensure seamless transitions between what were originally separate chunks.
-5.  **Format Code Correctly**: Identify any code snippets and format them in properly fenced Markdown code blocks with language identifiers if possible.
+## Scope Creep
+- **Risk**: Adding Phase 2 features to Phase 1
+- **Mitigation**: Strict MVP discipline, clear phase separation
 
-**Source Content Chunks:**
+## Over-Engineering
+- **Risk**: Creating enterprise-level complexity for simple tool
+- **Mitigation**: Regular sense-checks, prefer simple solutions
 
----
-{chunk_content}
----
+# Appendix  
+## Research Findings
+- **Chunking Best Practices**: Token-based preferred, 200-2048 token range optimal
+- **Docling Patterns**: HybridChunker with HierarchicalChunker fallback
+- **Industry Standards**: Overlap essential for context preservation
 
-**Final Markdown Document:**
+## Existing Code Insights
+- Working implementation in converter.py demonstrates chunking approach
+- utils.py contains tested merge_small_trailing_chunks logic
+- Token parameters: MIN_TOKENS=200, MAX_TOKENS=2048 proven effective
+
+## Development Principles
+1. MVP-first approach
+2. Phase-appropriate scope
+3. Sense-check all implementations
+4. Reuse proven solutions
+5. Avoid redundant parameters
+</PRD> 

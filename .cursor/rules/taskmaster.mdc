@@ -12,6 +12,7 @@ This document outlines the standard operating procedure for using Taskmaster AI 
 - **MCP-First**: We will only use the `taskmaster-ai` MCP tools, not the CLI.
 - **Phased Approach**: We will tackle the project in phases, as outlined in the PRD. We will begin with Phase 1 and generate tasks for Phase 2 later.
 - **Plan, then Execute**: We will use Taskmaster's planning and analysis tools (`parse_prd`, `analyze_project_complexity`, `expand_task`) before starting development to create a clear and detailed implementation plan.
+- **Validate Continuously**: Implement pre and post-implementation validation checks to ensure quality and prevent over-engineering.
 
 ---
 
@@ -47,17 +48,31 @@ Raw tasks from the PRD may be too high-level. We will use Taskmaster's analysis 
 2.  **Review Report**: Use `complexity_report` to view the analysis.
 3.  **Expand Tasks**: For each task identified as complex in the report, use the `expand_task` or `expand_all` tool to generate detailed subtasks. Remember to specify the `file` parameter.
 
-### Step 3: Iterative Development Cycle
+### Step 3: Iterative Development Cycle with Validation
 
-This is the core loop for development.
+This is the core loop for development with added validation checkpoints.
 
-**Actions:**
+**Pre-Implementation Validation:**
+Before starting any task:
+1. **Check Existing Code**: Review `converter.py` and `utils.py` for existing solutions
+2. **Verify Scope**: Ensure the task aligns with Phase 1 MVP requirements
+3. **Simplicity Check**: Question if the approach is appropriately simple
+4. **Research Alignment**: Confirm parameters match our research findings
+
+**Implementation Actions:**
 1.  **Select a Task**: Use `next_task` (specifying the `file` parameter).
 2.  **Understand the Task**: Use `get_task` with the task ID and `file` parameter.
 3.  **Implement**: Write the code to complete the task.
 4.  **Update Status**: As you work, update the task's status using `set_task_status`, ensuring you provide the correct `file` path.
     - When you start: `status: 'in-progress'`
     - When you finish: `status: 'done'`
+
+**Post-Implementation Validation:**
+After completing each task:
+1. **Pattern Compliance**: Verify code follows established patterns
+2. **Parameter Check**: Ensure research-backed values are used
+3. **Extensibility Review**: Confirm solution is extensible without complexity
+4. **Optimization Check**: Verify no premature optimization
 
 ### Step 4: Adapting and Evolving the Plan
 
@@ -71,4 +86,28 @@ Projects evolve. Here's how to handle changes with Taskmaster. All these tools r
 
 ---
 
-By following this workflow, we ensure that we have a well-defined, detailed, and adaptable plan for building the Docling Converter, leveraging the full power of Taskmaster AI for project management.
+## Validation Checkpoints
+
+### Pre-Task Validation Questions
+1. **Scope Alignment**: "Does this task belong in Phase 1 (core pipeline) or Phase 2 (LLM integration)?"
+2. **Existing Solutions**: "Have we already solved this in the old code (`converter.py`, `utils.py`)?"
+3. **Complexity Check**: "Is this the simplest solution that could work?"
+4. **Research Compliance**: "Do the parameters match our research (tokens not chars, 200-2048 range)?"
+
+### Post-Task Validation Criteria
+1. **Code Quality**: Clean, readable, follows Python best practices
+2. **Configuration**: Uses Config dataclass, no hardcoded values
+3. **Error Handling**: Appropriate try/except blocks, informative messages
+4. **Testing**: Can be easily unit tested
+5. **Documentation**: Clear docstrings and comments
+
+### Red Flags to Watch For
+- Enterprise-level abstractions for simple functionality
+- Multiple configuration file formats
+- Complex dependency injection frameworks
+- Overly granular class hierarchies
+- Features that belong in Phase 2
+
+---
+
+By following this workflow with integrated validation, we ensure that we have a well-defined, detailed, and quality-focused plan for building the Docling Converter, leveraging the full power of Taskmaster AI for project management while maintaining development discipline. 

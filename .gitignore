@@ -21,3 +21,6 @@ logs/**
 
 #tasks
 .taskmaster/tasks/**.txt
+
+#IDE config
+.vscode/

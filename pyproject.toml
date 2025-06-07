@@ -1,17 +1,31 @@
 [project]
-name = "research"
+name = "llmarkable"
 version = "0.1.0"
-description = "Add your description here"
+description = "LLMarkable: Transform documents into LLM-friendly, remarkable outputs"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "docling>=2.36.1",
     "rich>=14.0.0",
     "transformers>=4.52.4",
+    "typer>=0.16.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-cov>=6.1.1",
 ]
 
 [tool.ruff]
-line-length = 120
-fix = true
+extend = "~/.config/ruff/ruff.toml"
 
+[tool.ruff.lint]
+extend-ignore = [
+    "T201",      # print statements 
+    "S101",      # assert statements
+]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"

@@ -78,13 +78,9 @@ def merge_chunks(chunk_list: list) -> type | None:
     merged_content = "\n\n".join(combined_text)
     return type("MergedChunk", (), {"text": merged_content})()
 
-def is_chunk_useful(chunk_text: str, tokenizer: HuggingFaceTokenizer, min_chars: int, min_tokens: int) -> bool:
-    """Determine if a chunk is useful for LLM retrieval."""
-    # Filter out chunks that are too small
-    if len(chunk_text.strip()) < min_chars:
-        return False
-
-    # Count tokens using the same tokenizer
+def is_chunk_useful(chunk_text: str, tokenizer: HuggingFaceTokenizer, min_tokens: int) -> bool:
+    """Determine if a chunk is useful for LLM retrieval based on token count and content quality."""
+    # Count tokens using the same tokenizer - primary filter
     token_count = tokenizer.count_tokens(chunk_text)
     if token_count < min_tokens:
         return False

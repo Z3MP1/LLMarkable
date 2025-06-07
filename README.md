@@ -1,8 +1,10 @@
-# Project: Advanced Document Conversion & Synthesis Pipeline
+# LLMarkable
+
+**Transform documents into LLM-friendly, remarkable outputs**
 
 ## 1. Overview
 
-This project provides a sophisticated, modular pipeline for converting various source documents (such as PDF and HTML) into high-quality, LLM-friendly Markdown. It moves beyond simple conversion by employing a format-specific architecture to maximize quality and an intelligent chunking strategy to ensure no information is lost.
+LLMarkable provides a sophisticated, modular pipeline for converting various source documents (such as PDF and HTML) into high-quality, LLM-friendly Markdown. It moves beyond simple conversion by employing a format-specific architecture to maximize quality and an intelligent chunking strategy to ensure no information is lost.
 
 The core objective is to produce structured, coherent, and semantically rich Markdown files that are optimized for Retrieval-Augmented Generation (RAG) and other LLM-based applications.
 
@@ -17,19 +19,18 @@ The core objective is to produce structured, coherent, and semantically rich Mar
 The project is organized into a modular package structure:
 
 ```
-research/
+llmarkable/
 ├── input/                  # Source documents (PDFs, HTML, etc.)
 ├── output/                 # Processed markdown files
-├── docling_converter/      # Main application package
+├── src/                    # Main application package
 │   ├── __init__.py
-│   ├── main.py             # CLI entry point (using Typer)
-│   ├── config.py           # Centralized configuration
 │   ├── pipelines/
 │   │   ├── __init__.py
 │   │   ├── base_pipeline.py
 │   │   ├── pdf_pipeline.py
 │   │   └── html_pipeline.py
 │   └── utils.py
+├── main.py                 # CLI entry point (using Typer)
 ├── pyproject.toml          # Project dependencies
 └── README.md
 ```
@@ -51,7 +52,7 @@ This project uses `uv` for package management.
 1.  Place your source documents (`.pdf`, `.html`, etc.) into the `input/` directory.
 2.  Run the conversion from the command line, specifying the file to process:
     ```bash
-    python -m docling_converter.main input/your_document.pdf
+    python main.py input/your_document.pdf
     ```
 3.  The processed Markdown files will be saved in a dedicated subdirectory within the `output/` folder.
 
