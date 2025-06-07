@@ -34,11 +34,13 @@ llmarkable/
 │   │   └── html.py        # HTML processing pipeline (planned)
 │   └── utils.py           # Utility functions
 ├── tests/                  # Comprehensive test suite
-│   ├── test_pdf_pipeline_unit.py
-│   ├── test_chunk_utilities.py
-│   └── conftest.py        # Pytest configuration and fixtures
+│   ├── conftest.py        # Pytest configuration and fixtures
+│   ├── test_config.py     # Configuration validation tests
+│   ├── test_pdf_pipeline_unit.py  # PDF pipeline unit tests
+│   ├── test_chunk_utilities.py    # Utility function tests
+│   └── htmlcov/           # Coverage reports (generated)
 ├── main.py                 # CLI entry point (using Typer)
-├── pyproject.toml          # Project dependencies and 
+├── pyproject.toml          # Project dependencies and configuration
 └── README.md
 ```
 
@@ -63,16 +65,39 @@ This project uses `uv` for package management and requires Python 3.12+.
     ```
 3.  The processed Markdown files will be saved in a dedicated subdirectory within the `output/` folder.
 
-## 5. Development Guidelines
+**Note**: CLI implementation is currently in development (Task 7). The PDF processing pipeline is complete and tested.
+
+## 5. Development Status
+
+### ✅ Completed Components
+
+- **PDF Processing Pipeline**: Complete implementation with Docling integration
+- **Configuration Management**: Research-driven dataclass configuration
+- **Testing Infrastructure**: Comprehensive pytest setup with 39 passing tests
+- **Type Safety**: mypy strict mode with full type annotations
+- **Quality Assurance**: Mandatory testing standards and code quality rules
+
+### 🚧 In Progress
+
+- **HTML Pipeline**: Next priority (Task 5)
+- **CLI Interface**: Typer-based command-line interface (Task 7)
+- **Format Detection**: Auto-detection and pipeline routing (Task 6)
+
+### 📋 Upcoming
+
+- **Output Generation**: Structured markdown output system
+- **Logging Infrastructure**: Rich-based logging with appropriate levels
+
+## 6. Development Guidelines
 
 ### Testing Strategy
 
 This project follows comprehensive testing best practices:
 
-- **Unit Testing**: All components have dedicated unit tests using pytest
+- **Unit Testing Only**: All tests use mocks to avoid external dependencies
+- **Fast Execution**: Tests run in milliseconds (under 100ms each)
 - **Test Organization**: Tests are organized in the `tests/` directory with clear naming conventions
-- **Fixtures**: Reusable test fixtures for common setup scenarios
-- **Mocking**: Strategic use of mocks to isolate components and avoid external dependencies
+- **Fixtures**: Reusable test fixtures for common setup scenarios in `conftest.py`
 - **Coverage**: Minimum 80% test coverage requirement with pytest-cov
 - **Parametrization**: Use of pytest.mark.parametrize for testing multiple scenarios efficiently
 
@@ -82,7 +107,7 @@ This project follows comprehensive testing best practices:
 # Run all tests
 pytest
 
-# Run with coverage
+# Run with coverage (reports to tests/htmlcov/)
 pytest --cov=src --cov-report=html
 
 # Run specific test file
@@ -134,23 +159,12 @@ mypy src/pipelines/pdf.py
 
 ### Code Quality Standards
 
-#### Pre-commit Hooks
-
-The project uses pre-commit hooks to enforce code quality:
-
-```bash
-# Install pre-commit hooks
-pre-commit install
-
-# Run manually
-pre-commit run --all-files
-```
-
-#### Linting and Formatting
+#### Development Tools
 
 - **ruff**: For linting and code formatting
 - **mypy**: For static type checking
-- **pytest**: For running tests
+- **pytest**: For running tests with coverage
+- **uv**: For fast package management
 
 #### Development Workflow
 
@@ -160,7 +174,7 @@ pre-commit run --all-files
 4. **Type checking**: Verify mypy passes without errors
 5. **Documentation**: Update docstrings and documentation
 
-## 6. Architecture Decisions
+## 7. Architecture Decisions
 
 ### Data Validation Strategy
 
@@ -171,7 +185,7 @@ For this project, we chose **dataclasses over Pydantic** based on:
 3. **Performance**: Minimal overhead for configuration objects
 4. **Type Safety**: mypy provides compile-time type checking
 
-**When to use Pydantic:**
+**When to use Pydantic (Future):**
 - External API data validation
 - Complex validation rules
 - JSON serialization/deserialization requirements
@@ -187,21 +201,32 @@ Our testing approach prioritizes:
 4. **Comprehensive Coverage**: All public interfaces and edge cases covered
 5. **Maintainable**: Tests are easy to understand and modify
 
-## 7. Roadmap: Future Development
+## 8. Roadmap: Future Development
 
-The next major phase of this project is to implement an AI-augmented synthesis layer.
+### Phase 2: AI-Powered Content Refinement
 
--   **Phase 2: AI-Powered Content Refinement**: A `--refine` flag will be added to the CLI. When used, the pipeline will feed the generated chunks to a local LLM (e.g., Mistral-7B). The LLM will be tasked with intelligently rewriting and reformatting the chunks into a single, perfectly structured, and coherent Markdown document, effectively creating a final "golden copy" of the source material.
+The next major phase will implement an AI-augmented synthesis layer:
 
-## 8. Contributing
+- **LLM Integration**: Local model support (Mistral-7B, Llama, etc.)
+- **Content Refinement**: `--refine` flag for intelligent rewriting
+- **Coherent Output**: Single, perfectly structured Markdown document
+- **Prompt Engineering**: Optimized prompts for different document types
+
+### Extensibility Plans
+
+- **New File Formats**: DOCX, PPTX, images via plugin architecture
+- **Configuration Files**: YAML/TOML support for complex configurations
+- **Batch Processing**: Multiple file processing capabilities
+- **API Interface**: REST API for programmatic usage
+
+## 9. Contributing
 
 ### Development Setup
 
 1. Clone the repository
 2. Install dependencies: `uv sync`
-3. Install pre-commit hooks: `pre-commit install`
-4. Run tests to verify setup: `pytest`
-5. Run type checking: `mypy src/`
+3. Run tests to verify setup: `pytest`
+4. Run type checking: `mypy src/`
 
 ### Pull Request Guidelines
 
@@ -212,6 +237,16 @@ The next major phase of this project is to implement an AI-augmented synthesis l
 5. Update documentation for new features
 
 For detailed development guidelines, see [development.md](development.md).
+
+## 10. Current Test Metrics
+
+- **Total Tests**: 39 passing
+- **Execution Time**: Under 15 seconds for full suite
+- **Coverage**: 52% overall
+  - Config: 90%
+  - Base Pipeline: 88%
+  - PDF Pipeline: 100%
+- **Type Safety**: 100% mypy compliance
 
 
 
