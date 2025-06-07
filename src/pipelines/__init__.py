@@ -6,11 +6,16 @@ documents to LLM-friendly markdown chunks.
 
 Available pipelines:
 - BasePipeline: Abstract base class for all pipelines
-- [Future: PDFPipeline, HTMLPipeline]
+- PDFPipeline: PDF document processing pipeline
+- HTMLPipeline: HTML document processing pipeline
 """
 
 from .base import BasePipeline
+from .html import HTMLPipeline
+from .pdf import PDFPipeline
 
 __all__ = [
     "BasePipeline",
-] 
+    "HTMLPipeline",
+    "PDFPipeline",
+]

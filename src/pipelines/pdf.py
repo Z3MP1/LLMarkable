@@ -5,19 +5,16 @@ Implements optimized PDF to markdown conversion with table structure preservatio
 and token-aware chunking strategies.
 """
 
-# Import utilities from root level utils.py
-import sys
 from pathlib import Path
+from typing import Any
 
 from docling.chunking import HierarchicalChunker, HybridChunker
 from docling.datamodel.base_models import InputFormat
 from docling.document_converter import DocumentConverter, PdfFormatOption
-from docling_core.transforms.chunker.tokenizer.huggingface import HuggingFaceTokenizer
 from rich.console import Console
 
-sys.path.append(str(Path(__file__).parent.parent.parent))
 from src.config import Config
-from utils import is_chunk_useful, merge_small_trailing_chunks
+from src.utils import get_tokenizer, is_chunk_useful, merge_small_trailing_chunks
 
 from .base import BasePipeline
 
@@ -30,14 +27,8 @@ class PDFPipeline(BasePipeline):
         super().__init__(config)
         self.console = Console()
 
-        # Initialize tokenizer for chunking (using same as HybridChunker)
-        from transformers import AutoTokenizer
-
-        base_tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
-        self.tokenizer = HuggingFaceTokenizer(
-            tokenizer=base_tokenizer,
-            max_tokens=self.config.chunk_size,
-        )
+        # Get tokenizer using the new utils function
+        self.tokenizer = get_tokenizer(config)
 
         # Configure PDF processing options
         self.pdf_options = PdfFormatOption(
@@ -72,15 +63,15 @@ class PDFPipeline(BasePipeline):
         """Return supported PDF file extensions."""
         return [".pdf"]
 
-    def process(self, input_path: Path) -> list[str]:
+    def process(self, input_path: Path) -> list[dict[str, Any]]:
         """
-        Process PDF document and return markdown chunks.
+        Process PDF document and return structured chunks.
 
         Args:
             input_path: Path to PDF file
 
         Returns:
-            List of markdown text chunks
+            List of chunk dictionaries with content and metadata
 
         Raises:
             FileNotFoundError: If PDF file doesn't exist
@@ -110,15 +101,22 @@ class PDFPipeline(BasePipeline):
             # Apply chunking strategy with fallback
             chunks = self._chunk_document(docling_doc)
 
-            # Convert chunks to markdown strings
-            markdown_chunks = self._chunks_to_markdown(chunks)
+            # Convert chunks to structured format
+            structured_chunks = self._chunks_to_structured(chunks, input_path)
 
             # Apply post-processing based on config
             if self.config.merge_small_trailing_chunks:
-                markdown_chunks = self._merge_small_chunks(markdown_chunks)
+                structured_chunks = merge_small_trailing_chunks(
+                    structured_chunks,
+                    self.config,
+                )
 
             # Filter out non-useful chunks
-            useful_chunks = self._filter_useful_chunks(markdown_chunks)
+            useful_chunks = [
+                chunk
+                for chunk in structured_chunks
+                if is_chunk_useful(chunk, self.config)
+            ]
 
             self.console.print(f"  -> Generated {len(useful_chunks)} useful chunks")
             return useful_chunks
@@ -164,57 +162,43 @@ class PDFPipeline(BasePipeline):
                     msg,
                 ) from fallback_e
 
-    def _chunks_to_markdown(self, chunks: list) -> list[str]:
-        """Convert Docling chunks to markdown strings."""
-        markdown_chunks = []
+    def _chunks_to_structured(
+        self,
+        chunks: list,
+        file_path: Path,
+    ) -> list[dict[str, Any]]:
+        """Convert Docling chunks to structured format."""
+        structured_chunks = []
 
-        for chunk in chunks:
+        for i, chunk in enumerate(chunks):
             try:
-                # Use Docling's contextualize method for proper markdown conversion
-                # Extract text directly if available, otherwise use Docling's serialization
-                markdown_text = chunk.text if hasattr(chunk, "text") else str(chunk)
+                # Extract text content from chunk
+                if hasattr(chunk, "text"):
+                    content = chunk.text
+                elif hasattr(chunk, "content"):
+                    content = chunk.content
+                else:
+                    content = str(chunk)
 
                 # Basic cleanup
-                markdown_text = markdown_text.strip()
-                if markdown_text:
-                    markdown_chunks.append(markdown_text)
+                content = content.strip()
+                if content:
+                    chunk_dict = {
+                        "content": content,
+                        "metadata": {
+                            "source_file": str(file_path),
+                            "chunk_index": i,
+                            "chunk_type": "text",
+                            "format": "pdf",
+                        },
+                    }
+                    structured_chunks.append(chunk_dict)
 
             except (AttributeError, TypeError, ValueError) as e:
                 if self.config.verbose:
                     self.console.print(
-                        f"  -> Warning: Failed to convert chunk to markdown: {e!s}",
+                        f"  -> Warning: Failed to convert chunk to structured format: {e!s}",
                     )
                 continue
 
-        return markdown_chunks
-
-    def _merge_small_chunks(self, chunks: list[str]) -> list[str]:
-        """Apply small chunk merging using utility function."""
-        # Convert strings to mock chunk objects for utility function
-        mock_chunks = [type("Chunk", (), {"text": chunk})() for chunk in chunks]
-
-        merged_chunks = merge_small_trailing_chunks(
-            chunks=mock_chunks,
-            tokenizer=self.tokenizer,
-            console=self.console,
-            min_tokens=self.config.min_tokens,
-            merge_flag=self.config.merge_small_trailing_chunks,
-        )
-
-        # Convert back to strings
-        return [chunk.text for chunk in merged_chunks]
-
-    def _filter_useful_chunks(self, chunks: list[str]) -> list[str]:
-        """Filter chunks based on usefulness criteria."""
-        useful_chunks = []
-
-        for chunk in chunks:
-            if is_chunk_useful(chunk, self.tokenizer, self.config.min_tokens):
-                useful_chunks.append(chunk)
-            elif self.config.verbose:
-                token_count = self.tokenizer.count_tokens(chunk)
-                self.console.print(
-                    f"  -> Filtered out chunk with {token_count} tokens (below {self.config.min_tokens})",
-                )
-
-        return useful_chunks
+        return structured_chunks

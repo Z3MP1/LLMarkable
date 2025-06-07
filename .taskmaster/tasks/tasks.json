@@ -144,7 +144,7 @@
         2,
         3
       ],
-      "status": "pending",
+      "status": "in-progress",
       "subtasks": [
         {
           "id": 1,
@@ -152,7 +152,7 @@
           "description": "Validate that existing PDF and HTML pipelines are complete and working before implementing the factory pattern. Verify factory pattern best practices and ensure the scope remains within Phase 1 requirements.",
           "dependencies": [],
           "details": "Check that PDFPipeline and HTMLPipeline classes exist and have consistent interfaces. Verify both pipelines have process() methods with similar signatures. Research factory pattern best practices for Python. Confirm that simple extension-based routing (.pdf, .html, .htm) meets current requirements without complex AI-driven detection. Document the expected interface that all pipelines should implement for factory compatibility.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Run existing pipeline tests to ensure they pass. Create simple test files (.pdf, .html) to verify pipelines work independently. Document interface requirements for future pipeline implementations."
         },
         {

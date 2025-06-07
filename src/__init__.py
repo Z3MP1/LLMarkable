@@ -1,5 +1,5 @@
 """
-Advanced Document Conversion & Synthesis Pipeline
+Advanced Document Conversion & Synthesis Pipeline.
 
 A modular, extensible document conversion pipeline that transforms source files
 (PDF, HTML, etc.) into high-quality, LLM-friendly Markdown with format-specific
@@ -12,4 +12,4 @@ __author__ = "Converter Team"
 # Import main components for easier access
 from .config import Config
 
-__all__ = ["Config", "__version__"] 
+__all__ = ["Config", "__version__"]
