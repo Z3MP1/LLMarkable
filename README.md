@@ -1,17 +1,65 @@
-# Project: PDF to LLM-friendly Markdown Converter
+# Project: Advanced Document Conversion & Synthesis Pipeline
 
-## 0. Overview
+## 1. Overview
 
-This project is a Python script that converts documents from the `input/` directory into chunked, LLM-friendly Markdown files in the `output/` directory using the `docling` library.
+This project provides a sophisticated, modular pipeline for converting various source documents (such as PDF and HTML) into high-quality, LLM-friendly Markdown. It moves beyond simple conversion by employing a format-specific architecture to maximize quality and an intelligent chunking strategy to ensure no information is lost.
 
-## 1. Objective
+The core objective is to produce structured, coherent, and semantically rich Markdown files that are optimized for Retrieval-Augmented Generation (RAG) and other LLM-based applications.
 
-The goal is to process a directory of potentially large and diverse files and convert them into a format optimized for consumption by Large Language Models (LLMs). This involves not just format conversion but also intelligent chunking to respect semantic boundaries and fit within typical LLM context window limits.
+## 2. Core Features
 
-## 2. Requirements
+- **Modular & Scalable Architecture**: The codebase is organized into a clean Python package, making it easy to maintain and extend with new file formats or processing capabilities.
+- **Format-Specific Pipelines**: The system auto-detects the input file type and dispatches a dedicated, optimized pipeline (e.g., for PDF, HTML) to ensure the highest quality conversion by leveraging format-specific features like `PdfFormatOption`.
+- **Intelligent Chunk Consolidation**: To prevent information loss, the pipeline avoids simply discarding small chunks. Instead, it intelligently merges them with adjacent chunks, ensuring that short but important pieces of content are preserved.
 
-- Python 3.12+
-- `docling` library
-- `rich` library
-- `transformers` library
+## 3. Project Structure
+
+The project is organized into a modular package structure:
+
+```
+research/
+├── input/                  # Source documents (PDFs, HTML, etc.)
+├── output/                 # Processed markdown files
+├── docling_converter/      # Main application package
+│   ├── __init__.py
+│   ├── main.py             # CLI entry point (using Typer)
+│   ├── config.py           # Centralized configuration
+│   ├── pipelines/
+│   │   ├── __init__.py
+│   │   ├── base_pipeline.py
+│   │   ├── pdf_pipeline.py
+│   │   └── html_pipeline.py
+│   └── utils.py
+├── pyproject.toml          # Project dependencies
+└── README.md
+```
+
+## 4. Installation & Usage
+
+### Installation
+
+This project uses `uv` for package management.
+
+1.  Clone the repository.
+2.  Install the dependencies:
+    ```bash
+    uv sync
+    ```
+
+### Usage
+
+1.  Place your source documents (`.pdf`, `.html`, etc.) into the `input/` directory.
+2.  Run the conversion from the command line, specifying the file to process:
+    ```bash
+    python -m docling_converter.main input/your_document.pdf
+    ```
+3.  The processed Markdown files will be saved in a dedicated subdirectory within the `output/` folder.
+
+## 5. Roadmap: Future Development
+
+The next major phase of this project is to implement an AI-augmented synthesis layer.
+
+-   **Phase 2: AI-Powered Content Refinement**: A `--refine` flag will be added to the CLI. When used, the pipeline will feed the generated chunks to a local LLM (e.g., Mistral-7B). The LLM will be tasked with intelligently rewriting and reformatting the chunks into a single, perfectly structured, and coherent Markdown document, effectively creating a final "golden copy" of the source material.
+
+
 

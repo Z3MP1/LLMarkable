@@ -9,5 +9,15 @@ wheels/
 # Virtual environments
 .venv
 
+# Data
 input/**
 output/**
+
+# Logs
+logs/**
+
+# Environment variables
+.env
+
+#tasks
+.taskmaster/tasks/**.txt
