@@ -15,7 +15,14 @@ alwaysApply: true
 
 - **Python Environment**: This is a Python 3.12 project using `uv` for package management. Requirements are defined in [pyproject.toml](mdc:pyproject.toml) and [uv.lock](mdc:uv.lock). `ruff` is used for linting and enforcing type usage. Adhere to coding style best practices to avoid linting errors. 
 
-- **Coding Style**: Always use types. `ruff` will otherwise mark functions or variables without types as error.
+- **Coding Style**: 
+- Always use types. `ruff` will otherwise mark functions or variables without types as error.
+- Never use `List` or `Dict`, but always use native `list` or `dict`
+- Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+- Do not catch blind exception: `Exception`
+- `open()` should be replaced by `Path.open()`
+- Avoid too complex functions. 
+- Avoid too many arguments in functions definitions.
 
 - **Development Progress**: The progress i documented in [development.md](mdc:development.md), which you should update after completed tasks or changed requirements or plans! 
 

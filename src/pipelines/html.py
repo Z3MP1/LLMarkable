@@ -1,7 +1,7 @@
 """HTML document processing pipeline."""
 
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from docling.document_converter import DocumentConverter, InputFormat
 
@@ -14,7 +14,8 @@ from .base import BasePipeline
 class HTMLPipeline(BasePipeline):
     """Pipeline for processing HTML documents using Docling."""
 
-    supported_extensions = [".html", ".htm"]
+    supported_extensions: ClassVar[list[str]] = [".html", ".htm"]
+    MIN_PARAGRAPH_LENGTH: int = 50
 
     def __init__(self, config: Config) -> None:
         """
@@ -94,7 +95,7 @@ class HTMLPipeline(BasePipeline):
 
         chunks = []
         for i, paragraph in enumerate(paragraphs):
-            if len(paragraph) > 50:  # Skip very short paragraphs
+            if len(paragraph) > self.MIN_PARAGRAPH_LENGTH:  # Skip very short paragraphs
                 chunk = {
                     "content": paragraph,
                     "metadata": {
