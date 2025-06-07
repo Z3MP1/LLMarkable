@@ -2,8 +2,8 @@
 
 import sys
 
-from converter.config import Config
-from converter.utils import (
+from src.config import Config
+from src.utils import (
     ChunkData,
     get_tokenizer,
     is_chunk_useful,
@@ -11,7 +11,7 @@ from converter.utils import (
 )
 
 
-def test_token_counting() -> bool:
+def validate_token_counting() -> bool:
     """Test token counting with various chunk sizes."""
     print("=== Testing Token Counting ===")
 
@@ -37,8 +37,10 @@ def test_token_counting() -> bool:
             f"Expected useful={expected_useful}, got {is_useful}"
         )
 
+    return True
 
-def test_chunk_filtering() -> bool:
+
+def validate_chunk_filtering() -> bool:
     """Test chunk filtering with different content types."""
     print("\n=== Testing Chunk Filtering ===")
 
@@ -71,8 +73,10 @@ def test_chunk_filtering() -> bool:
             f"Chunk {i + 1}: Expected useful={expected}, got {useful}"
         )
 
+    return True
 
-def test_chunk_merging() -> bool:
+
+def validate_chunk_merging() -> bool:
     """Test chunk merging functionality."""
     print("\n=== Testing Chunk Merging ===")
 
@@ -104,8 +108,10 @@ def test_chunk_merging() -> bool:
         f"Expected {len(merged_chunks)} <= {len(chunks)}"
     )
 
+    return True
 
-def test_docling_compatibility() -> bool:
+
+def validate_docling_compatibility() -> bool:
     """Test compatibility with Docling patterns."""
     print("\n=== Testing Docling Compatibility ===")
 
@@ -124,6 +130,8 @@ def test_docling_compatibility() -> bool:
 
     assert is_correct_type, f"Expected HuggingFaceTokenizer, got {type(tokenizer)}"
 
+    return True
+
 
 # Keep the main function for standalone execution
 def main() -> bool:
@@ -131,10 +139,10 @@ def main() -> bool:
     print("🧪 Starting Post-Implementation Validation\n")
 
     tests = [
-        ("Token Counting", test_token_counting),
-        ("Chunk Filtering", test_chunk_filtering),
-        ("Chunk Merging", test_chunk_merging),
-        ("Docling Compatibility", test_docling_compatibility),
+        ("Token Counting", validate_token_counting),
+        ("Chunk Filtering", validate_chunk_filtering),
+        ("Chunk Merging", validate_chunk_merging),
+        ("Docling Compatibility", validate_docling_compatibility),
     ]
 
     results = []

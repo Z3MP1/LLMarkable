@@ -9,6 +9,10 @@ wheels/
 # Virtual environments
 .venv
 
+# Testing
+tests/htmlcov/
+.coverage
+
 # Data
 input/**
 output/**

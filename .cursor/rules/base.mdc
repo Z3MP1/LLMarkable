@@ -21,6 +21,16 @@ alwaysApply: true
 
 - **Execute from Project Root**: NEVER `cd` into subdirectories to run scripts or read files or such. You can do this from the root directory. Changing directories will only lead to confusion. 
 
-- **Test systematically**: All test script should be placed in the the `tests\` directory. Always adhere to pytest standards (cf. [pyproject.toml](mdc:pyproject.toml)) and best practices
+- **Testing Standards (MANDATORY)**: 
+  - ALL tests MUST be placed in the `tests/` directory, NEVER in project root
+  - ONLY write unit tests with mocks - NO external dependencies (file I/O, network, external services)
+  - Tests MUST run in milliseconds (under 100ms each) - NO slow integration tests
+  - ALWAYS use `unittest.mock` to mock external components (DocumentConverter, file operations, etc.)
+  - Test naming: `test_should_action_when_condition()` format
+  - NEVER create test files outside `tests/` directory
+  - Use `conftest.py` for shared fixtures and pytest configuration
+  - Minimum 80% coverage, 100% for critical components (pipelines, utilities)
+
+- **Data Handling**: Use Python dataclasses for configuration, NOT Pydantic. Simple internal config doesn't need runtime validation overhead.
 
 
