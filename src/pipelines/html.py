@@ -5,8 +5,9 @@ from typing import Any
 
 from docling.document_converter import DocumentConverter, InputFormat
 
-from ..config import Config
-from ..utils import is_chunk_useful, merge_small_trailing_chunks
+from src.config import Config
+from src.utils import is_chunk_useful, merge_small_trailing_chunks
+
 from .base import BasePipeline
 
 
@@ -47,10 +48,12 @@ class HTMLPipeline(BasePipeline):
 
         """
         if not file_path.exists():
-            raise FileNotFoundError(f"File not found: {file_path}")
+            msg = f"File not found: {file_path}"
+            raise FileNotFoundError(msg)
 
         if file_path.suffix.lower() not in self.supported_extensions:
-            raise ValueError(f"Unsupported file extension: {file_path.suffix}")
+            msg = f"Unsupported file extension: {file_path.suffix}"
+            raise ValueError(msg)
 
         try:
             # Convert HTML document using Docling
@@ -70,7 +73,8 @@ class HTMLPipeline(BasePipeline):
             return chunks
 
         except Exception as e:
-            raise RuntimeError(f"Failed to process HTML file {file_path}: {e}") from e
+            msg = f"Failed to process HTML file {file_path}: {e}"
+            raise RuntimeError(msg) from e
 
     def _create_chunks(self, content: str, file_path: Path) -> list[dict[str, Any]]:
         """

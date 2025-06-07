@@ -11,6 +11,12 @@ Available pipelines:
 """
 
 from .base import BasePipeline
+from .factory import (
+    create_pipeline,
+    get_supported_formats,
+    is_supported_format,
+    register_pipeline,
+)
 from .html import HTMLPipeline
 from .pdf import PDFPipeline
 
@@ -18,4 +24,8 @@ __all__ = [
     "BasePipeline",
     "HTMLPipeline",
     "PDFPipeline",
+    "create_pipeline",
+    "get_supported_formats",
+    "is_supported_format",
+    "register_pipeline",
 ]

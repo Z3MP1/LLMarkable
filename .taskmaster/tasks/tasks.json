@@ -144,7 +144,7 @@
         2,
         3
       ],
-      "status": "in-progress",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -163,7 +163,7 @@
             1
           ],
           "details": "Implement pipeline registry dictionary mapping extensions to pipeline classes. Create get_pipeline_for_file() function that extracts file extension and returns appropriate pipeline instance. Add supported_formats() function returning list of all registered extensions. Implement clear error handling with descriptive messages for unsupported file types. Use factory pattern with registry for easy addition of future formats. Ensure consistent error types and messages across the factory.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Unit tests for get_pipeline_for_file() with valid extensions (.pdf, .html, .htm). Test error handling with unsupported extensions. Verify supported_formats() returns correct list. Test pipeline instantiation and basic functionality."
         },
         {
@@ -174,7 +174,7 @@
             2
           ],
           "details": "Test format detection with various file extensions including edge cases (uppercase, multiple dots). Verify correct pipeline selection and instantiation. Test error handling with completely unsupported formats and malformed filenames. Create a mock pipeline class and register it to test extensibility. Validate that the factory follows established patterns and is easy to extend. Ensure error messages are user-friendly and informative.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Integration tests with real file paths. Test case variations (.PDF, .Html, file.test.pdf). Error handling tests with invalid extensions. Mock pipeline registration test to verify extensibility. Performance testing with multiple file type detection calls."
         }
       ]
