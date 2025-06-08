@@ -406,7 +406,7 @@
       "description": "Create a new DocxPipeline class that inherits from BasePipeline and uses Docling's SimplePipeline with WordFormatOption to process Microsoft Word documents (.docx).",
       "details": "Create pipelines/docx.py with DocxPipeline class inheriting from BasePipeline. Configure Docling's SimplePipeline with WordFormatOption to handle Microsoft Word document processing, including proper handling of tables, headers, footers, and embedded objects. Implement the process() method that takes a Path input and returns List[str] markdown chunks following the same interface as existing PDF and HTML pipelines. Set supported_extensions = ['.docx']. Integrate chunk consolidation from utils.py using merge_small_trailing_chunks and apply token-based filtering with research-backed parameters. Configure WordFormatOption with appropriate settings for preserving document structure, handling complex formatting, and extracting text content while maintaining readability. Implement comprehensive error handling for corrupted DOCX files, password-protected documents, and unsupported Word features. Add proper logging for conversion progress and any format-specific warnings. Ensure the pipeline handles large documents efficiently and provides meaningful error messages for common DOCX processing issues. Include support for documents with complex layouts, embedded images (extract alt text), and maintain proper paragraph and section boundaries in the output chunks.",
       "testStrategy": "Create unit tests in tests/test_docx_pipeline.py to verify DocxPipeline initialization, supported extensions validation, and proper inheritance from BasePipeline. Test document processing with sample DOCX files including simple text documents, documents with tables and formatting, and documents with headers/footers. Verify chunk consolidation integration by testing with documents that produce small trailing chunks. Test error handling with corrupted DOCX files, non-existent files, and unsupported file formats. Validate that WordFormatOption configuration preserves document structure and produces readable markdown output. Create integration tests that process real DOCX documents and verify output quality, chunk boundaries, and metadata preservation. Test performance with large DOCX files to ensure efficient processing. Verify that the pipeline integrates correctly with the pipeline factory and CLI interface.",
-      "status": "done",
+      "status": "pending",
       "dependencies": [
         1,
         4
@@ -418,8 +418,8 @@
           "title": "Research and Validate Docling WordFormatOption Configuration",
           "description": "Research Docling's WordFormatOption capabilities and validate the optimal configuration for DOCX processing. Analyze how to preserve document structure, handle complex formatting, and extract content while maintaining readability.",
           "dependencies": [],
-          "details": "Study Docling's SimplePipeline and WordFormatOption documentation to understand available configuration parameters. Test different settings for handling tables, headers, footers, embedded objects, and complex layouts. Determine optimal parameters for preserving paragraph boundaries, section breaks, and extracting alt text from images. Validate error handling approaches for corrupted files, password-protected documents, and unsupported features. Document the recommended configuration settings and any limitations discovered.\n<info added on 2025-06-08T19:25:49.149Z>\nResearch completed successfully with comprehensive validation of WordFormatOption configuration patterns. Key findings confirmed SimplePipeline as the optimal choice for DOCX processing with DocumentConverter integration. Recommended configuration pattern established: WordFormatOption(pipeline_cls=SimplePipeline) with InputFormat.DOCX support. Validation testing confirmed successful instantiation, pipeline assignment, and compatibility with existing chunking strategies (HybridChunker/HierarchicalChunker). Standard Docling error handling patterns verified for corrupted files and unsupported features. Configuration ready for implementation phase.\n</info added on 2025-06-08T19:25:49.149Z>",
-          "status": "done",
+          "details": "Study Docling's SimplePipeline and WordFormatOption documentation to understand available configuration parameters. Test different settings for handling tables, headers, footers, embedded objects, and complex layouts. Determine optimal parameters for preserving paragraph boundaries, section breaks, and extracting alt text from images. Validate error handling approaches for corrupted files, password-protected documents, and unsupported features. Document the recommended configuration settings and any limitations discovered.",
+          "status": "pending",
           "testStrategy": "Create test DOCX files with various formatting complexities (tables, headers, embedded images, complex layouts) and validate Docling's processing capabilities with different WordFormatOption configurations."
         },
         {
@@ -429,8 +429,8 @@
           "dependencies": [
             1
           ],
-          "details": "Create pipelines/docx.py with DocxPipeline class inheriting from BasePipeline. Set supported_extensions = ['.docx']. Implement the process() method that accepts a Path input and returns List[str] markdown chunks. Configure Docling's SimplePipeline with WordFormatOption using the validated settings from subtask 1. Implement comprehensive error handling for corrupted DOCX files, password-protected documents, and unsupported Word features. Add proper logging for conversion progress and format-specific warnings. Integrate chunk consolidation using merge_small_trailing_chunks from utils.py and apply token-based filtering with research-backed parameters.\n<info added on 2025-06-08T19:26:13.544Z>\n**IMPLEMENTATION COMPLETED**\n\nCore DocxPipeline implementation finished ahead of schedule during research phase. File created at src/pipelines/docx.py with complete DocxPipeline class inheriting from BasePipeline. Successfully integrated WordFormatOption configuration validated in subtask 12.1 using WordFormatOption(pipeline_cls=SimplePipeline). Implemented HybridChunker with HierarchicalChunker fallback strategy for optimal text segmentation. Added comprehensive error handling with ConversionError wrapping for corrupted files, password-protected documents, and unsupported features. Integrated existing chunk consolidation utilities from utils.py and applied research-backed token filtering parameters via Config dataclass. Implemented Rich console integration for user feedback and verbose logging. Created comprehensive unit test suite at tests/test_docx_pipeline_unit.py covering instantiation, file support validation, processing workflow, and error handling scenarios. All original subtask requirements fulfilled with consistent architecture matching existing PDF/HTML pipeline patterns.\n</info added on 2025-06-08T19:26:13.544Z>",
-          "status": "done",
+          "details": "Create pipelines/docx.py with DocxPipeline class inheriting from BasePipeline. Set supported_extensions = ['.docx']. Implement the process() method that accepts a Path input and returns List[str] markdown chunks. Configure Docling's SimplePipeline with WordFormatOption using the validated settings from subtask 1. Implement comprehensive error handling for corrupted DOCX files, password-protected documents, and unsupported Word features. Add proper logging for conversion progress and format-specific warnings. Integrate chunk consolidation using merge_small_trailing_chunks from utils.py and apply token-based filtering with research-backed parameters.",
+          "status": "pending",
           "testStrategy": "Unit tests for the DocxPipeline class methods, error handling scenarios, and integration with BasePipeline interface. Test with various DOCX file types and edge cases."
         },
         {
@@ -440,8 +440,8 @@
           "dependencies": [
             2
           ],
-          "details": "Enhance the DocxPipeline to handle large documents efficiently with proper memory management. Implement support for complex layouts, embedded images (extract alt text), and maintain proper paragraph and section boundaries in output chunks. Ensure meaningful error messages for common DOCX processing issues. Optimize the chunk consolidation process for DOCX-specific content patterns. Validate integration with the existing pipeline system and ensure consistent behavior with PDF and HTML pipelines. Add comprehensive logging and monitoring for production use.\n<info added on 2025-06-08T19:51:50.208Z>\nTASK COMPLETED - All advanced DOCX processing features successfully implemented and integrated. Factory integration working with create_pipeline() method. Large document memory management implemented with 10MB threshold detection and batch processing in 50-chunk batches. Advanced content processing includes enhanced metadata extraction with page numbers and section headers, embedded image alt text extraction, paragraph boundary optimization, and complex table analysis with quality metrics. Performance optimizations include memory-efficient chunk processing with quality filtering and enhanced error handling with meaningful DOCX-specific messages. Integration testing completed with DOCX test added to test_pipeline_factory_integration.py. Advanced feature unit tests implemented with minor syntax issues remaining but core functionality fully validated. Production-ready pipeline delivers seamless integration with existing system, consistent output format with PDF/HTML pipelines, proper BasePipeline inheritance, and configuration-driven chunking with research-backed parameters.\n</info added on 2025-06-08T19:51:50.208Z>",
-          "status": "done",
+          "details": "Enhance the DocxPipeline to handle large documents efficiently with proper memory management. Implement support for complex layouts, embedded images (extract alt text), and maintain proper paragraph and section boundaries in output chunks. Ensure meaningful error messages for common DOCX processing issues. Optimize the chunk consolidation process for DOCX-specific content patterns. Validate integration with the existing pipeline system and ensure consistent behavior with PDF and HTML pipelines. Add comprehensive logging and monitoring for production use.",
+          "status": "pending",
           "testStrategy": "Integration tests with the complete pipeline system, performance testing with large DOCX files, end-to-end testing with various document types, and validation of output quality compared to existing PDF/HTML pipelines."
         }
       ]
@@ -452,7 +452,7 @@
       "description": "Create a new PptxPipeline class that inherits from BasePipeline and processes Microsoft PowerPoint presentations (.pptx) using Docling's capabilities for slide content extraction and text consolidation.",
       "details": "Create pipelines/pptx.py with PptxPipeline class inheriting from BasePipeline. Configure Docling's SimplePipeline with PowerPointFormatOption to handle Microsoft PowerPoint document processing, including proper extraction of slide content, speaker notes, and embedded objects. Implement the process() method that takes a Path input and returns List[str] markdown chunks following the same interface as existing PDF and HTML pipelines. Set supported_extensions = ['.pptx']. Apply chunk consolidation using utils.py functions with research-backed token parameters. Handle slide-specific metadata including slide numbers, titles, and layout information. Ensure proper text extraction from text boxes, shapes, and tables within slides. Implement special handling for presentation structure by preserving slide boundaries and hierarchical content organization. Use HybridChunker with HierarchicalChunker fallback as per established patterns. Include proper error handling for corrupted or password-protected presentations. Add support for extracting alt-text from images and handling of slide transitions/animations metadata. Ensure the pipeline integrates seamlessly with the existing pipeline factory system and CLI interface.",
       "testStrategy": "Create unit tests in tests/test_pptx_pipeline.py to verify PptxPipeline class instantiation, supported extensions validation, and process method functionality. Test with sample .pptx files containing various slide layouts, embedded tables, images with alt-text, and speaker notes. Verify that slide-specific metadata is properly extracted and included in chunk headers. Test chunk consolidation logic with presentation content to ensure proper token counting and merging. Create integration tests that process complete PowerPoint presentations and validate output structure matches expected markdown format. Test error handling with corrupted files, unsupported PowerPoint versions, and password-protected presentations. Verify pipeline factory correctly routes .pptx files to PptxPipeline. Test CLI integration by processing sample presentations and validating output directory structure and file generation. Include performance tests with large presentations containing many slides and embedded media.",
-      "status": "done",
+      "status": "pending",
       "dependencies": [
         1,
         4
@@ -464,8 +464,8 @@
           "title": "Research and Configure Docling PowerPoint Processing",
           "description": "Investigate Docling's PowerPoint processing capabilities and establish the optimal configuration for PPTX document handling, including slide content extraction patterns and metadata preservation strategies.",
           "dependencies": [],
-          "details": "Research Docling's SimplePipeline and PowerPointFormatOption to understand available configuration parameters for PPTX processing. Analyze how Docling extracts slide content, speaker notes, embedded objects, and metadata. Document the expected output format and structure. Create initial configuration setup for PowerPointFormatOption with appropriate settings for text extraction from text boxes, shapes, tables, and image alt-text. Establish patterns for preserving slide boundaries and hierarchical content organization. Test basic Docling functionality with sample PPTX files to validate extraction capabilities.\n<info added on 2025-06-08T20:22:16.516Z>\nResearch findings confirmed: Docling v2 handles PPTX files through InputFormat.PPTX using WordFormatOption with SimplePipeline, following identical patterns to DOCX implementation. Implementation approach established: utilize DocumentConverter with WordFormatOption, apply HybridChunker with HierarchicalChunker fallback, and implement same memory management and quality filtering patterns as existing DOCX pipeline. Docling automatically extracts slide content, speaker notes, and embedded objects through SimplePipeline without requiring PowerPointFormatOption-specific configurations.\n</info added on 2025-06-08T20:22:16.516Z>",
-          "status": "done",
+          "details": "Research Docling's SimplePipeline and PowerPointFormatOption to understand available configuration parameters for PPTX processing. Analyze how Docling extracts slide content, speaker notes, embedded objects, and metadata. Document the expected output format and structure. Create initial configuration setup for PowerPointFormatOption with appropriate settings for text extraction from text boxes, shapes, tables, and image alt-text. Establish patterns for preserving slide boundaries and hierarchical content organization. Test basic Docling functionality with sample PPTX files to validate extraction capabilities.",
+          "status": "pending",
           "testStrategy": "Create test PPTX files with various content types (text boxes, tables, images with alt-text, speaker notes) and verify Docling's extraction output format and completeness."
         },
         {
@@ -475,8 +475,8 @@
           "dependencies": [
             1
           ],
-          "details": "Create pipelines/pptx.py with PptxPipeline class inheriting from BasePipeline. Set supported_extensions = ['.pptx']. Implement the process() method that accepts a Path input and returns List[str] markdown chunks. Configure Docling's SimplePipeline with PowerPointFormatOption using research findings from subtask 1. Implement slide-specific metadata handling including slide numbers, titles, and layout information. Ensure proper text extraction from all slide elements while preserving presentation structure. Apply chunk consolidation using utils.py functions with research-backed token parameters. Implement HybridChunker with HierarchicalChunker fallback following established patterns. Add comprehensive error handling for corrupted or password-protected presentations.\n<info added on 2025-06-08T20:25:35.940Z>\nCore PptxPipeline implementation completed successfully. Created src/pipelines/pptx.py with full PPTX processing capabilities using Docling's WordFormatOption and SimplePipeline. Registered pipeline in factory.py. All 116 existing tests pass, and CLI integration confirmed working - PPTX now appears in supported formats list. Pipeline follows established patterns from DOCX implementation with presentation-specific optimizations for slide content processing.\n</info added on 2025-06-08T20:25:35.940Z>",
-          "status": "done",
+          "details": "Create pipelines/pptx.py with PptxPipeline class inheriting from BasePipeline. Set supported_extensions = ['.pptx']. Implement the process() method that accepts a Path input and returns List[str] markdown chunks. Configure Docling's SimplePipeline with PowerPointFormatOption using research findings from subtask 1. Implement slide-specific metadata handling including slide numbers, titles, and layout information. Ensure proper text extraction from all slide elements while preserving presentation structure. Apply chunk consolidation using utils.py functions with research-backed token parameters. Implement HybridChunker with HierarchicalChunker fallback following established patterns. Add comprehensive error handling for corrupted or password-protected presentations.",
+          "status": "pending",
           "testStrategy": "Unit tests for the PptxPipeline class methods, testing with valid PPTX files, corrupted files, and password-protected files to verify error handling."
         },
         {
@@ -486,8 +486,8 @@
           "dependencies": [
             2
           ],
-          "details": "Register PptxPipeline in the pipeline factory system to enable automatic detection and processing of .pptx files. Ensure seamless integration with existing CLI interface and command-line processing workflows. Implement comprehensive testing with diverse presentation types including: simple text slides, complex layouts with multiple text boxes and shapes, presentations with embedded tables and charts, slides with images and alt-text, presentations with speaker notes, and files with slide transitions/animations metadata. Validate that the pipeline produces consistent markdown output format matching existing PDF and HTML pipeline interfaces. Test edge cases including empty presentations, single-slide files, and presentations with special characters or formatting. Verify proper handling of presentation structure preservation and slide boundary maintenance.\n<info added on 2025-06-08T20:27:52.531Z>\nIntegration testing completed successfully. Added PPTX integration test to test_pipeline_factory_integration.py with all 117 tests passing including the new PPTX test. CLI integration confirmed with PPTX appearing in supported formats list. Factory correctly routes .pptx files to PptxPipeline. End-to-end integration verified working with proper mocking. PPTX pipeline is fully integrated and production-ready.\n</info added on 2025-06-08T20:27:52.531Z>",
-          "status": "done",
+          "details": "Register PptxPipeline in the pipeline factory system to enable automatic detection and processing of .pptx files. Ensure seamless integration with existing CLI interface and command-line processing workflows. Implement comprehensive testing with diverse presentation types including: simple text slides, complex layouts with multiple text boxes and shapes, presentations with embedded tables and charts, slides with images and alt-text, presentations with speaker notes, and files with slide transitions/animations metadata. Validate that the pipeline produces consistent markdown output format matching existing PDF and HTML pipeline interfaces. Test edge cases including empty presentations, single-slide files, and presentations with special characters or formatting. Verify proper handling of presentation structure preservation and slide boundary maintenance.",
+          "status": "pending",
           "testStrategy": "Integration tests with the pipeline factory, end-to-end CLI testing with various PPTX files, and comparison testing to ensure output format consistency with other pipeline implementations."
         }
       ]
@@ -495,58 +495,57 @@
     {
       "id": 14,
       "title": "Implement Text-Based Pipelines (TXT, MD, CSV)",
-      "description": "Create an ImagePipeline class with proper Docling integration for processing image files using OCR capabilities. This pipeline will handle PNG, JPG, JPEG, and TIFF formats using Docling's InputFormat.IMAGE with intelligent chunking strategies and text extraction. This completes the core document processing pipeline suite for Phase 1.",
+      "description": "Create lightweight pipeline classes for plain text (.txt), Markdown (.md), and CSV (.csv) files with minimal Docling overhead, appropriate chunking strategies, and structure preservation.",
+      "details": "Create three new pipeline classes in pipelines/text.py: TxtPipeline, MarkdownPipeline, and CsvPipeline, all inheriting from BasePipeline. For TxtPipeline: implement simple text reading with UTF-8 encoding, apply paragraph-based chunking using double newlines as delimiters, and use HierarchicalChunker for token-based splitting. For MarkdownPipeline: preserve Markdown structure by respecting headers (# ## ###) as natural chunk boundaries, maintain code blocks and tables intact, and apply intelligent chunking that keeps related content together. For CsvPipeline: read CSV files using pandas or csv module, preserve column headers in each chunk, implement row-based chunking with configurable batch sizes, and maintain data integrity across chunks. All pipelines should bypass heavy Docling processing for performance, implement lightweight text processing with minimal dependencies, set appropriate supported_extensions (['.txt'], ['.md', '.markdown'], ['.csv']), and integrate with existing chunk consolidation utilities from utils.py. Include proper error handling for encoding issues, malformed CSV files, and large file processing. Implement streaming for large files to manage memory usage efficiently.",
+      "testStrategy": "Create unit tests for each pipeline class testing file reading, chunking logic, and structure preservation. Test TxtPipeline with various text encodings, paragraph structures, and large files. Test MarkdownPipeline with complex documents containing headers, code blocks, tables, and nested lists to verify structure preservation. Test CsvPipeline with different CSV formats, various delimiters, quoted fields, and files with missing data. Create integration tests using sample files of each type to verify end-to-end processing. Test error handling with corrupted files, unsupported encodings, and edge cases. Verify performance with large files and memory usage optimization. Test chunk consolidation integration and token counting accuracy for all three formats.",
       "status": "pending",
       "dependencies": [
         1,
         4
       ],
       "priority": "high",
-      "details": "Create ImagePipeline class in pipelines/image.py inheriting from BasePipeline. Implement proper Docling integration for image file processing using Docling's InputFormat.IMAGE with OCR capabilities. Process PNG, JPG, JPEG, and TIFF files through Docling's document conversion pipeline, extract text content using OCR, implement intelligent chunking based on extracted text content with configurable chunk sizes, and maintain image metadata and structure information. The pipeline should leverage Docling's built-in image processing and OCR features while implementing text-based chunking on the extracted content. Set supported_extensions to ['.png', '.jpg', '.jpeg', '.tiff'] and integrate with existing chunk consolidation utilities from utils.py. Include proper error handling for corrupted image files, unsupported image formats, and OCR processing failures. Implement memory-efficient processing for large image files while working within Docling's framework.",
-      "testStrategy": "Create unit tests for the ImagePipeline class testing Docling integration, image file reading, OCR text extraction, and chunking logic. Test with different image formats, various image qualities, scanned documents, and images with different text layouts. Create integration tests using sample image files to verify end-to-end processing with Docling's OCR capabilities. Test error handling with corrupted files, unsupported formats, and edge cases. Verify performance with large image files and memory usage optimization. Test chunk consolidation integration and token counting accuracy for OCR-extracted text processing through Docling.",
       "subtasks": [
         {
           "id": 1,
-          "title": "Create Base Image Pipeline Infrastructure",
-          "description": "Set up the foundational structure for image-based pipeline including the base classes, common utilities, and shared configuration in pipelines/image.py",
+          "title": "Create Base Text Pipeline Infrastructure",
+          "description": "Set up the foundational structure for text-based pipelines including the base classes, common utilities, and shared configuration in pipelines/text.py",
           "dependencies": [],
-          "details": "Create pipelines/image.py file with imports for BasePipeline, HierarchicalChunker, and image processing utilities. Define common methods for image file handling, memory-efficient processing, and error handling patterns. Implement shared utilities for image validation, format detection, and OCR preprocessing. Set up logging and configuration patterns for image processing workflows. Include utilities for handling different image formats and preparing images for Docling's OCR processing.",
+          "details": "Create pipelines/text.py file with imports for BasePipeline, HierarchicalChunker, and text processing utilities. Define common methods for UTF-8 encoding handling, file reading with streaming support, and error handling patterns. Implement shared utilities for memory-efficient file processing and encoding detection. Set up logging and configuration patterns that will be inherited by all text pipeline classes.",
           "status": "pending",
-          "testStrategy": "Unit tests for image file reading, format detection, validation, and error handling with various image types and sizes"
+          "testStrategy": "Unit tests for file reading, encoding detection, and error handling with various file sizes and encoding scenarios"
         },
         {
           "id": 2,
-          "title": "Implement Docling Image Processing Integration",
-          "description": "Integrate with Docling's InputFormat.IMAGE to enable OCR capabilities for image document processing",
+          "title": "Implement TxtPipeline Class",
+          "description": "Create the TxtPipeline class for processing plain text files with paragraph-based chunking and simple text processing",
           "dependencies": [
             1
           ],
-          "details": "Set up Docling DocumentConverter with InputFormat.IMAGE configuration for OCR processing. Implement proper image format handling for PNG, JPG, JPEG, and TIFF files. Configure OCR settings and text extraction parameters within Docling's framework. Handle image preprocessing requirements and optimize OCR accuracy. Implement error handling for OCR failures and unsupported image content. Convert Docling's OCR output to structured text format suitable for downstream chunking and processing.",
+          "details": "Implement TxtPipeline inheriting from BasePipeline with supported_extensions = ['.txt']. Add process_document method that reads UTF-8 text files, splits content by double newlines to identify paragraphs, and applies HierarchicalChunker for token-based splitting when paragraphs exceed size limits. Implement streaming for large files using generators. Include error handling for encoding issues and malformed text files. Integrate with existing chunk consolidation utilities from utils.py.",
           "status": "pending",
-          "testStrategy": "Test OCR accuracy with various image types, text layouts, and image qualities. Verify Docling integration and error handling for OCR processing failures"
+          "testStrategy": "Test with various text file sizes, different paragraph structures, encoding variations, and memory usage validation for large files"
         },
         {
           "id": 3,
-          "title": "Implement ImagePipeline Class with OCR Text Chunking",
-          "description": "Create the ImagePipeline class for processing image files with OCR text extraction and intelligent text-based chunking",
+          "title": "Implement MarkdownPipeline Class",
+          "description": "Create the MarkdownPipeline class that preserves Markdown structure while implementing intelligent chunking based on headers and content blocks",
           "dependencies": [
-            1,
-            2
+            1
           ],
-          "details": "Implement ImagePipeline inheriting from BasePipeline with supported_extensions = ['.png', '.jpg', '.jpeg', '.tiff']. Use Docling's OCR capabilities to extract text from images, then apply intelligent chunking strategies to the extracted text content. Implement configurable chunk sizes based on text content rather than image dimensions. Preserve image metadata and source information in chunk metadata. Handle cases where OCR extraction yields minimal or no text. Include memory-efficient processing for large image files and batch processing capabilities. Integrate with existing chunk consolidation utilities while maintaining image source traceability.",
+          "details": "Implement MarkdownPipeline inheriting from BasePipeline with supported_extensions = ['.md', '.markdown']. Parse Markdown content to identify headers (# ## ###), code blocks (```), and tables as structural boundaries. Implement chunking logic that respects these boundaries, keeping related content together under the same header hierarchy. Preserve code blocks and tables intact within chunks. Use header levels to determine chunk boundaries and maintain document structure. Apply HierarchicalChunker only when individual sections exceed size limits.",
           "status": "pending",
-          "testStrategy": "Test with various image types, scanned documents, screenshots with text, and images with different text densities. Validate chunking logic on OCR-extracted text and metadata preservation"
+          "testStrategy": "Test with complex Markdown documents containing nested headers, code blocks, tables, and mixed content to ensure structure preservation"
         },
         {
           "id": 4,
-          "title": "Implement Advanced OCR Error Handling and Optimization",
-          "description": "Add robust error handling, performance optimization, and quality validation for OCR processing workflows",
+          "title": "Implement CsvPipeline Class",
+          "description": "Create the CsvPipeline class for processing CSV files with row-based chunking while preserving column headers and data integrity",
           "dependencies": [
-            3
+            1
           ],
-          "details": "Implement comprehensive error handling for corrupted images, unsupported formats, and OCR processing failures. Add image quality assessment and preprocessing to improve OCR accuracy. Implement fallback strategies for low-quality OCR results. Add performance monitoring and memory usage optimization for large image processing batches. Include validation of OCR output quality and confidence scoring. Implement retry mechanisms for failed OCR operations with different processing parameters.",
+          "details": "Implement CsvPipeline inheriting from BasePipeline with supported_extensions = ['.csv']. Use pandas or csv module to read CSV files with proper delimiter detection and encoding handling. Implement row-based chunking with configurable batch sizes, ensuring each chunk includes column headers. Maintain data integrity by not splitting rows across chunks. Handle large CSV files using chunked reading to manage memory usage. Include error handling for malformed CSV files, encoding issues, and missing data. Convert chunks to appropriate text format for downstream processing while preserving tabular structure information.",
           "status": "pending",
-          "testStrategy": "Test error scenarios with corrupted files, low-quality images, and edge cases. Verify performance with large image files and batch processing scenarios"
+          "testStrategy": "Test with various CSV formats, different delimiters, large files, malformed data, and validate data integrity across chunks"
         }
       ]
     },
@@ -578,39 +577,7 @@
         15
       ],
       "priority": "high",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Update Pipeline Registry and Imports",
-          "description": "Extend the _PIPELINE_REGISTRY dictionary in factory.py to include all new format mappings and add necessary imports for all new pipeline classes.",
-          "dependencies": [],
-          "details": "Add imports for DocxPipeline, PptxPipeline, TxtPipeline, MarkdownPipeline, CsvPipeline, and ImagePipeline at the top of factory.py. Update the _PIPELINE_REGISTRY dictionary to include mappings: '.docx' -> DocxPipeline, '.pptx' -> PptxPipeline, '.txt' -> TxtPipeline, '.md' -> MarkdownPipeline, '.csv' -> CsvPipeline, and image formats ('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif') -> ImagePipeline. Add validation logic to ensure all registered pipeline classes inherit from BasePipeline and implement required methods during module initialization.",
-          "status": "pending",
-          "testStrategy": "Unit tests to verify registry contains all expected mappings, imports are successful, and validation catches invalid pipeline classes"
-        },
-        {
-          "id": 2,
-          "title": "Enhance Format Detection and Pipeline Instantiation",
-          "description": "Update the get_pipeline_for_file() function to handle expanded format registry with case-insensitive extension matching and proper instantiation of new pipeline classes.",
-          "dependencies": [
-            1
-          ],
-          "details": "Modify get_pipeline_for_file() to normalize file extensions to lowercase for case-insensitive matching. Ensure the function can handle multiple extensions mapping to the same pipeline class (especially for image formats). Update the supported_formats() function to return the complete list of supported extensions including all new formats. Maintain backward compatibility with existing PDF and HTML pipeline functionality. Add proper error handling for file extension detection edge cases.",
-          "status": "pending",
-          "testStrategy": "Test with various file extensions in different cases, verify correct pipeline instantiation for each format, and ensure existing functionality remains intact"
-        },
-        {
-          "id": 3,
-          "title": "Update Error Handling and Documentation",
-          "description": "Enhance error handling to provide specific error messages for unsupported formats and update CLI help text to reflect expanded format support.",
-          "dependencies": [
-            2
-          ],
-          "details": "Implement enhanced error handling that provides specific error messages for unsupported formats, including suggestions for similar supported formats using string similarity algorithms. Update any CLI help text, docstrings, and documentation strings throughout factory.py to reflect the complete list of supported formats. Ensure error messages are user-friendly and guide users toward supported alternatives. Add comprehensive logging for format detection and pipeline instantiation processes.",
-          "status": "pending",
-          "testStrategy": "Test error handling with unsupported file types, verify helpful error messages are displayed, and validate that all documentation accurately reflects supported formats"
-        }
-      ]
+      "subtasks": []
     },
     {
       "id": 17,

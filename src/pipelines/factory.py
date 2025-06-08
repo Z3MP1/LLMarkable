@@ -10,14 +10,18 @@ from pathlib import Path
 from src.config import Config
 
 from .base import BasePipeline
+from .docx import DocxPipeline
 from .html import HTMLPipeline
 from .pdf import PDFPipeline
+from .pptx import PptxPipeline
 
 # Pipeline registry mapping extensions to pipeline classes
 _PIPELINE_REGISTRY: dict[str, type[BasePipeline]] = {
     ".pdf": PDFPipeline,
     ".html": HTMLPipeline,
     ".htm": HTMLPipeline,
+    ".docx": DocxPipeline,
+    ".pptx": PptxPipeline,
 }
 
 

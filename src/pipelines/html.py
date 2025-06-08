@@ -14,6 +14,7 @@ from .base import BasePipeline
 class HTMLPipeline(BasePipeline):
     """Pipeline for processing HTML documents using Docling."""
 
+    # Multiple format support - HTML genuinely supports multiple extensions
     supported_extensions: ClassVar[list[str]] = [".html", ".htm"]
     MIN_PARAGRAPH_LENGTH: int = 50
 
@@ -32,6 +33,10 @@ class HTMLPipeline(BasePipeline):
                 InputFormat.HTML: None,  # Use default HTML settings
             },
         )
+
+    def supports_file(self, file_path: Path) -> bool:
+        """Override to support multiple HTML extensions."""
+        return file_path.suffix.lower() in self.supported_extensions
 
     def process(self, file_path: Path) -> list[dict[str, Any]]:
         """
@@ -52,7 +57,7 @@ class HTMLPipeline(BasePipeline):
             msg = f"File not found: {file_path}"
             raise FileNotFoundError(msg)
 
-        if file_path.suffix.lower() not in self.supported_extensions:
+        if not self.supports_file(file_path):
             msg = f"Unsupported file extension: {file_path.suffix}"
             raise ValueError(msg)
 

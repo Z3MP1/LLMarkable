@@ -1,10 +1,8 @@
-# Python-generated files
+# Cache files
 __pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
 # Virtual environments
 .venv
@@ -28,6 +26,5 @@ logs/**
 #Coverage
 htmlcov/
 .coverage
-
-#Test outputs
-tests/output/**
+coverage.xml
+coverage.json

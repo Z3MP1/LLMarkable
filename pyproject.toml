@@ -31,15 +31,24 @@ extend-ignore = [
     "PLR0913",   # Too many arguments in function definition
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "tests/*" = ["PLR2004", "PT011", "ARG001", "SIM117", "SLF001"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
 
+[tool.coverage.report]
+directory = "tests/"
+
 [tool.coverage.html]
 directory = "tests/htmlcov"
+
+[tool.coverage.xml]
+output = "tests/coverage.xml"
+
+[tool.coverage.json]
+output = "tests/coverage.json"
 
 [tool.coverage.run]
 source = ["src"]

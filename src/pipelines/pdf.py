@@ -58,11 +58,6 @@ class PDFPipeline(BasePipeline):
         # Fallback chunker for cases where HybridChunker fails
         self.hierarchical_chunker = HierarchicalChunker()
 
-    @property
-    def supported_extensions(self) -> list[str]:
-        """Return supported PDF file extensions."""
-        return [".pdf"]
-
     def process(self, input_path: Path) -> list[dict[str, Any]]:
         """
         Process PDF document and return structured chunks.

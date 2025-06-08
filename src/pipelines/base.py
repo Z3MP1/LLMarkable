@@ -34,11 +34,19 @@ class BasePipeline(ABC):
 
         """
 
-    @property
-    @abstractmethod
-    def supported_extensions(self) -> list[str]:
-        """Return list of supported file extensions (e.g., ['.pdf', '.html'])."""
-
     def supports_file(self, file_path: Path) -> bool:
-        """Check if this pipeline supports the given file type."""
-        return file_path.suffix.lower() in self.supported_extensions
+        """
+        Check if this pipeline supports the given file type.
+
+        Default implementation checks if the file extension matches the pipeline's
+        primary format. Pipelines supporting multiple extensions should override this.
+        """
+        # Get the pipeline's primary extension from its class name
+        class_name = self.__class__.__name__.lower()
+        if class_name.endswith("pipeline"):
+            format_name = class_name[:-8]  # Remove 'pipeline' suffix
+            primary_extension = f".{format_name}"
+            return file_path.suffix.lower() == primary_extension
+
+        # Fallback: no support detection possible
+        return False

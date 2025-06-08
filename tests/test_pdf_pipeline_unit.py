@@ -26,8 +26,8 @@ class TestPDFPipelineInstantiation:
         pipeline = PDFPipeline(test_config)
 
         assert pipeline is not None
-        assert hasattr(pipeline, "supported_extensions")
-        assert ".pdf" in pipeline.supported_extensions
+        # PDF pipeline uses automatic extension detection via class name
+        assert pipeline.supports_file(Path("test.pdf"))
 
     def test_should_inherit_from_base_pipeline_when_instantiated(
         self,
@@ -170,7 +170,7 @@ class TestPDFPipelineProcessing:
                 Mock(text="chunk2"),
             ]
 
-            result = pipeline._chunk_document(mock_docling_document)  # noqa: SLF001
+            result = pipeline._chunk_document(mock_docling_document)
 
             assert isinstance(result, list)
             assert len(result) == 2
