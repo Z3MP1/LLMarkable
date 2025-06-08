@@ -24,6 +24,26 @@ def test_config() -> Config:
 
 
 @pytest.fixture
+def test_config_with_output_dir(tmp_path: Path) -> Config:
+    """Create a test configuration with a temporary output directory."""
+    config = Config.default()
+    config.verbose = False
+    config.chunk_size = 1024
+    config.min_tokens = 50
+    config.output_dir = str(tmp_path)
+    config.include_metadata = True  # Enable for testing metadata features
+    return config
+
+
+@pytest.fixture
+def test_output_dir(tmp_path: Path) -> Path:
+    """Provide a clean temporary directory for test outputs."""
+    output_dir = tmp_path / "test_output"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    return output_dir
+
+
+@pytest.fixture
 def mock_docling_document() -> Mock:
     """Create a mock Docling document for testing."""
     mock_doc = Mock()
@@ -57,7 +77,12 @@ def mock_tokenizer() -> Mock:
         # Simple approximation: ~4 characters per token
         return list(range(len(text) // 4))
 
+    def mock_count_tokens(text: str) -> int:
+        # Simple approximation: ~4 characters per token
+        return len(text) // 4
+
     mock_tokenizer.encode = mock_encode
+    mock_tokenizer.count_tokens = mock_count_tokens
     return mock_tokenizer
 
 
@@ -85,9 +110,9 @@ def mock_chunks() -> list[Mock]:
     chunks = []
     for i, text in enumerate(
         [
-            "First chunk content",
-            "Second chunk with more content",
-            "Third chunk content",
+            "First chunk content with sufficient length to meet minimum token requirements",
+            "Second chunk with more content and additional context for testing purposes",
+            "Third chunk content that provides meaningful information for processing",
         ],
     ):
         chunk = Mock()
@@ -95,6 +120,27 @@ def mock_chunks() -> list[Mock]:
         chunk.meta = {"chunk_id": i}
         chunks.append(chunk)
     return chunks
+
+
+@pytest.fixture
+def sample_input_file(tmp_path: Path) -> Path:
+    """Create a sample input file for testing."""
+    input_file = tmp_path / "sample.html"
+    input_file.write_text(
+        """
+    <!DOCTYPE html>
+    <html>
+    <head><title>Test Document</title></head>
+    <body>
+        <h1>Test Content</h1>
+        <p>This is a test paragraph with some content.</p>
+        <p>Another paragraph with more content for testing purposes.</p>
+    </body>
+    </html>
+    """,
+        encoding="utf-8",
+    )
+    return input_file
 
 
 # Test configuration

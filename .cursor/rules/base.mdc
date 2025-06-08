@@ -17,7 +17,7 @@ alwaysApply: true
 
 - **Coding Style**: 
 - Always use types. `ruff` will otherwise mark functions or variables without types as error.
-- Never use `List` or `Dict`, but always use native `list` or `dict`
+- Avoid using imports from `typing`. Instead of `Dict` use `dict`. Instead of `List` use `List`. Instead of `Optional` use ` | `.
 - Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
 - Do not catch blind exception: `Exception`
 - `open()` should be replaced by `Path.open()`
@@ -29,7 +29,8 @@ alwaysApply: true
 - **Execute from Project Root**: NEVER `cd` into subdirectories to run scripts or read files or such. You can do this from the root directory. Changing directories will only lead to confusion. 
 
 - **Testing Standards (MANDATORY)**: 
-  - ALL tests MUST be placed in the `tests/` directory, NEVER in project root
+  - ALL tests MUST be placed in the `tests/` directory, NEVER create new files in project root
+  - All outputs from tests MUST be be placed in the `tests/output/` directory, NEVER create new directory in project root
   - ONLY write unit tests with mocks - NO external dependencies (file I/O, network, external services)
   - Tests MUST run in milliseconds (under 100ms each) - NO slow integration tests
   - ALWAYS use `unittest.mock` to mock external components (DocumentConverter, file operations, etc.)
@@ -40,4 +41,6 @@ alwaysApply: true
 
 - **Data Handling**: Use Python dataclasses for configuration, NOT Pydantic. Simple internal config doesn't need runtime validation overhead.
 
+- **Searching the web**: Use `firecrawl_search` MCP Tool over Web search. If `firecrawl_search` returns a bad / not usable response continue using Web search.
 
+- **Looking up in documentation**: Use `Context7` to lookup documentations for different tools and libraries. First use `resolve-library-id` to get the library id for the library / framework and then use `get_library_docs` with the library id and appropiate keyword(s) in the `topic` field.

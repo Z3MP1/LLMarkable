@@ -90,13 +90,24 @@ class PDFPipeline(BasePipeline):
 
         try:
             # Convert PDF to DoclingDocument
-            result = self.converter.convert(input_path)
-            docling_doc = result.document
+            try:
+                result = self.converter.convert(input_path)
+                docling_doc = result.document
 
-            if self.config.verbose:
-                self.console.print(
-                    f"  -> Converted to DoclingDocument with {len(docling_doc.texts)} text elements",
-                )
+                if self.config.verbose:
+                    self.console.print(
+                        f"  -> Converted to DoclingDocument with {len(docling_doc.texts)} text elements",
+                    )
+            except Exception as e:
+                from src.exceptions import ConversionError
+
+                msg = f"PDF conversion failed: {e!s}"
+                raise ConversionError(
+                    msg,
+                    file_path=str(input_path),
+                    conversion_stage="document_parsing",
+                    original_error=e,
+                ) from e
 
             # Apply chunking strategy with fallback
             chunks = self._chunk_document(docling_doc)
@@ -122,16 +133,35 @@ class PDFPipeline(BasePipeline):
             return useful_chunks
 
         except Exception as e:
-            self.console.print(
-                f"[red]Error processing PDF {input_path.name}: {e!s}[/red]",
+            # If it's already one of our custom exceptions, re-raise it
+            from src.exceptions import LLMarkableError
+
+            if isinstance(e, LLMarkableError):
+                self.console.print(
+                    f"[red]Error processing PDF {input_path.name}: {e!s}[/red]",
+                )
+                raise
+
+            # Otherwise, wrap in a ConversionError
+            from src.exceptions import ConversionError
+
+            error = ConversionError(
+                f"Unexpected error processing PDF: {e!s}",
+                file_path=str(input_path),
+                conversion_stage="unknown",
+                original_error=e,
             )
-            msg = f"Failed to process PDF: {e!s}"
-            raise ValueError(msg) from e
+            self.console.print(
+                f"[red]Error processing PDF {input_path.name}: {error!s}[/red]",
+            )
+            raise error from e
 
     def _chunk_document(self, docling_doc: object) -> list:
         """Apply chunking strategy with HybridChunker and hierarchical fallback."""
+        from src.exceptions import ChunkingError
+
+        # Try HybridChunker first (preferred for token-aware chunking)
         try:
-            # Try HybridChunker first (preferred for token-aware chunking)
             chunks = list(self.hybrid_chunker.chunk(docling_doc))
 
             if self.config.verbose:
@@ -139,10 +169,10 @@ class PDFPipeline(BasePipeline):
 
             return chunks
 
-        except (AttributeError, TypeError, ValueError) as e:
+        except (AttributeError, TypeError, ValueError) as hybrid_error:
             if self.config.verbose:
                 self.console.print(
-                    f"  -> HybridChunker failed ({e!s}), falling back to HierarchicalChunker",
+                    f"  -> 🔄 Fallback: HybridChunker failed ({hybrid_error!s}), trying HierarchicalChunker",
                 )
 
             # Fallback to HierarchicalChunker
@@ -151,16 +181,19 @@ class PDFPipeline(BasePipeline):
 
                 if self.config.verbose:
                     self.console.print(
-                        f"  -> HierarchicalChunker produced {len(chunks)} chunks",
+                        f"  -> ✅ HierarchicalChunker produced {len(chunks)} chunks",
                     )
 
                 return chunks
 
-            except Exception as fallback_e:
-                msg = f"Both chunking strategies failed. HybridChunker: {e!s}, HierarchicalChunker: {fallback_e!s}"
-                raise ValueError(
+            except Exception as fallback_error:
+                # Both chunkers failed - this is a critical error
+                msg = f"All chunking strategies failed. HybridChunker: {hybrid_error!s}, HierarchicalChunker: {fallback_error!s}"
+                raise ChunkingError(
                     msg,
-                ) from fallback_e
+                    chunker_type="fallback_chain",
+                    original_error=fallback_error,
+                ) from fallback_error
 
     def _chunks_to_structured(
         self,

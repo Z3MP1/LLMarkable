@@ -32,8 +32,18 @@ class TokenizerCache:
     def get_tokenizer(self, model_name: str) -> HuggingFaceTokenizer:
         """Get cached tokenizer instance or create new one."""
         if model_name not in self._cache:
-            tokenizer = AutoTokenizer.from_pretrained(model_name)
-            self._cache[model_name] = HuggingFaceTokenizer(tokenizer=tokenizer)
+            try:
+                tokenizer = AutoTokenizer.from_pretrained(model_name)
+                self._cache[model_name] = HuggingFaceTokenizer(tokenizer=tokenizer)
+            except Exception as e:
+                from .exceptions import TokenizerError
+
+                msg = f"Failed to load tokenizer '{model_name}': {e!s}"
+                raise TokenizerError(
+                    msg,
+                    model_name=model_name,
+                    original_error=e,
+                ) from e
         return self._cache[model_name]
 
 
@@ -68,6 +78,10 @@ def extract_text_content(chunk: object) -> str:
         String content of the chunk
 
     """
+    # Check for dictionary-like objects first
+    if hasattr(chunk, "get") and callable(chunk.get):
+        return chunk.get("content", "")
+    # Then check for object attributes
     if hasattr(chunk, "page_content"):
         return chunk.page_content
     if hasattr(chunk, "text"):
@@ -154,7 +168,7 @@ def merge_small_trailing_chunks(
     chunks: list[object],
     config: Config,
     tokenizer: HuggingFaceTokenizer | None = None,
-    verbose: bool = False,  # noqa: FBT002
+    verbose: bool = False,
 ) -> list[object]:
     """
     Merge small chunks at the end of documents, especially source lists and references.
@@ -231,7 +245,7 @@ def filter_useful_chunks(
     chunks: list[object],
     config: Config,
     tokenizer: HuggingFaceTokenizer | None = None,
-    verbose: bool = False,  # noqa: FBT002
+    verbose: bool = False,
 ) -> list[object]:
     """
     Filter chunks to keep only useful ones based on content quality and token count.

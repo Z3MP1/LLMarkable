@@ -13,7 +13,7 @@ class Config:
     """Configuration settings for document conversion pipeline."""
 
     # Chunk size settings (token-based, following Docling best practices)
-    min_tokens: int = 200  # Minimum for useful chunks
+    min_tokens: int = 330  # Balanced between useful chunks and token efficiency
     chunk_size: int = (
         2048  # Target chunk size, also used as max_tokens for HybridChunker
     )
@@ -31,6 +31,7 @@ class Config:
     # Output format
     output_format: str = "markdown"
     include_metadata: bool = True
+    individual_chunks: bool = False  # False = consolidated, True = individual files
 
     # Logging
     log_level: str = "INFO"
@@ -43,21 +44,43 @@ class Config:
 
     def validate(self) -> bool:
         """Basic validation of configuration values."""
+        from .exceptions import ValidationError
+
         if self.min_tokens <= 0:
             msg = "min_tokens must be positive"
-            raise ValueError(msg)
+            raise ValidationError(
+                msg,
+                field_name="min_tokens",
+                field_value=self.min_tokens,
+            )
         if self.chunk_size <= self.min_tokens:
-            msg = "chunk_size must be greater than min_tokens"
-            raise ValueError(msg)
+            msg = f"chunk_size ({self.chunk_size}) must be greater than min_tokens ({self.min_tokens})"
+            raise ValidationError(
+                msg,
+                field_name="chunk_size",
+                field_value=self.chunk_size,
+            )
         if self.chunk_overlap < 0:
             msg = "chunk_overlap must be non-negative"
-            raise ValueError(msg)
+            raise ValidationError(
+                msg,
+                field_name="chunk_overlap",
+                field_value=self.chunk_overlap,
+            )
         if self.chunk_overlap >= self.chunk_size:
-            msg = "chunk_overlap must be less than chunk_size"
-            raise ValueError(msg)
+            msg = f"chunk_overlap ({self.chunk_overlap}) must be less than chunk_size ({self.chunk_size})"
+            raise ValidationError(
+                msg,
+                field_name="chunk_overlap",
+                field_value=self.chunk_overlap,
+            )
         if self.log_level not in ["DEBUG", "INFO", "WARNING", "ERROR"]:
-            msg = "Invalid log_level"
-            raise ValueError(msg)
+            msg = f"Invalid log_level '{self.log_level}'. Must be one of: DEBUG, INFO, WARNING, ERROR"
+            raise ValidationError(
+                msg,
+                field_name="log_level",
+                field_value=self.log_level,
+            )
         return True
 
     @property

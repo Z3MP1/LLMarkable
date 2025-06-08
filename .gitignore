@@ -9,10 +9,6 @@ wheels/
 # Virtual environments
 .venv
 
-# Testing
-tests/htmlcov/
-.coverage
-
 # Data
 input/**
 output/**
@@ -28,3 +24,10 @@ logs/**
 
 #IDE config
 .vscode/
+
+#Coverage
+htmlcov/
+.coverage
+
+#Test outputs
+tests/output/**

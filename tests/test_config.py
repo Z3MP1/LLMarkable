@@ -8,6 +8,7 @@ following pytest best practices with proper isolation.
 import pytest
 
 from src.config import Config
+from src.exceptions import ValidationError
 
 
 class TestConfigDefaults:
@@ -18,7 +19,7 @@ class TestConfigDefaults:
         config = Config.default()
 
         assert config.chunk_size == 2048
-        assert config.min_tokens == 200
+        assert config.min_tokens == 330
         assert config.chunk_overlap == 100
         assert config.preserve_tables is True
         assert config.verbose is False
@@ -50,8 +51,8 @@ class TestConfigValidation:
         config.chunk_size = 50  # Too small (less than min_tokens=200)
 
         with pytest.raises(
-            ValueError,
-            match="chunk_size must be greater than min_tokens",
+            ValidationError,
+            match="chunk_size .* must be greater than min_tokens",
         ):
             config.validate()
 
@@ -60,7 +61,7 @@ class TestConfigValidation:
         config = Config.default()
         config.min_tokens = 0  # Too small (not positive)
 
-        with pytest.raises(ValueError, match="min_tokens must be positive"):
+        with pytest.raises(ValidationError, match="min_tokens must be positive"):
             config.validate()
 
     def test_should_raise_error_when_min_tokens_exceeds_chunk_size(self) -> None:
@@ -70,8 +71,8 @@ class TestConfigValidation:
         config.min_tokens = 600  # Larger than chunk_size
 
         with pytest.raises(
-            ValueError,
-            match="chunk_size must be greater than min_tokens",
+            ValidationError,
+            match="chunk_size .* must be greater than min_tokens",
         ):
             config.validate()
 
@@ -80,7 +81,7 @@ class TestConfigValidation:
         config = Config.default()
         config.chunk_overlap = -10
 
-        with pytest.raises(ValueError, match="chunk_overlap must be non-negative"):
+        with pytest.raises(ValidationError, match="chunk_overlap must be non-negative"):
             config.validate()
 
     def test_should_raise_error_when_chunk_overlap_exceeds_chunk_size(self) -> None:
@@ -90,8 +91,8 @@ class TestConfigValidation:
         config.chunk_overlap = 1200  # Larger than chunk_size
 
         with pytest.raises(
-            ValueError,
-            match="chunk_overlap must be less than chunk_size",
+            ValidationError,
+            match="chunk_overlap .* must be less than chunk_size",
         ):
             config.validate()
 
@@ -124,7 +125,7 @@ class TestConfigParameterization:
         if should_pass:
             config.validate()  # Should not raise
         else:
-            with pytest.raises(ValueError):
+            with pytest.raises(ValidationError):
                 config.validate()
 
     @pytest.mark.parametrize("chunk_overlap", [0, 50, 100, 200])
