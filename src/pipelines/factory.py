@@ -12,6 +12,7 @@ from src.config import Config
 from .base import BasePipeline
 from .docx import DocxPipeline
 from .html import HTMLPipeline
+from .image import ImagePipeline
 from .pdf import PDFPipeline
 from .pptx import PptxPipeline
 
@@ -22,6 +23,14 @@ _PIPELINE_REGISTRY: dict[str, type[BasePipeline]] = {
     ".htm": HTMLPipeline,
     ".docx": DocxPipeline,
     ".pptx": PptxPipeline,
+    # Image formats
+    ".png": ImagePipeline,
+    ".jpg": ImagePipeline,
+    ".jpeg": ImagePipeline,
+    ".tiff": ImagePipeline,
+    ".tif": ImagePipeline,
+    ".bmp": ImagePipeline,
+    ".gif": ImagePipeline,
 }
 
 

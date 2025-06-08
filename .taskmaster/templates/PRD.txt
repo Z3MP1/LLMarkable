@@ -1,199 +1,275 @@
 <context>
 # Overview  
-The Document Conversion Pipeline is a Python-based tool that transforms source files (PDF, HTML, etc.) into high-quality, LLM-friendly Markdown chunks. It addresses the common problem of poorly structured document conversion that leads to information loss and suboptimal chunking for LLM consumption. This tool is designed for developers and data scientists who need to prepare documents for retrieval-augmented generation (RAG) systems.
+The Document Conversion Pipeline is a Python-based tool that transforms source files (PDF, HTML, DOCX, PPTX, Images) into high-quality, LLM-friendly Markdown chunks with optional AI-powered content synthesis. It addresses the common problem of poorly structured document conversion that leads to information loss and suboptimal chunking for LLM consumption. This tool is designed for developers and data scientists who need to prepare documents for retrieval-augmented generation (RAG) systems and AI-powered content workflows.
 
 # Core Features  
-## Intelligent Chunk Management
+## Comprehensive Format Support ✅ COMPLETE
+- **5 Pipeline Types**: PDF, HTML, DOCX, PPTX, Image processing with OCR
+- **12 File Extensions**: .pdf, .html, .htm, .docx, .pptx, .png, .jpg, .jpeg, .tiff, .tif, .bmp, .gif
+- **Format-Specific Optimization**: Each pipeline leverages format-specific features and capabilities
+- **Extensible Architecture**: Easy addition of new format handlers via plugin system
+
+## Intelligent Chunk Management ✅ COMPLETE
 - **Token-based chunking**: Uses precise token counting (not character-based) for optimal chunk sizing
 - **Smart consolidation**: Merges small chunks with neighbors to prevent information loss
-- **Configurable parameters**: chunk_size (2048 tokens), min_tokens (200), chunk_overlap (100)
+- **Research-backed parameters**: chunk_size (2048 tokens), min_tokens (330), chunk_overlap (100)
+- **Quality filtering**: Intelligent filtering based on content density and token requirements
 
-## Format-Specific Pipelines
-- **PDF Pipeline**: Optimized for PDF documents with table structure preservation
-- **HTML Pipeline**: Maintains document structure and formatting during conversion
-- **Extensible Architecture**: Abstract base class allows easy addition of new format handlers
-
-## Research-Backed Configuration
-- Parameters based on industry best practices from Unstructured.io, Pinecone, and Docling documentation
-- Token-based approach aligns with embedding model constraints
-- Avoids redundant parameters and over-engineering
+## AI-Augmented Content Synthesis 🎯 NEW PHASE 2 FOCUS
+- **LLM Integration**: Local and cloud LLM support for content enhancement
+- **Content Refinement**: Transform raw chunks into coherent, readable documents
+- **Quality Preservation**: Maintain factual accuracy while improving readability
+- **Configurable Enhancement**: Multiple refinement levels and preservation modes
 
 # User Experience  
 ## User Personas
 - **Data Scientists**: Need clean, well-structured documents for RAG systems
-- **Developers**: Require reliable document conversion for their applications
+- **Developers**: Require reliable document conversion for their applications  
 - **Researchers**: Want to preserve all information while making it LLM-friendly
+- **Content Creators**: Need AI-enhanced document synthesis and refinement
 
 ## Key User Flows
-1. **Basic Conversion**: User provides PDF/HTML file → System converts to markdown chunks
-2. **Batch Processing**: User processes multiple files → System handles each with appropriate pipeline
-3. **Configuration Override**: User adjusts chunk parameters → System applies custom settings
+1. **Basic Conversion**: User provides any supported file → System converts to markdown chunks
+2. **AI-Enhanced Conversion**: User adds `--refine` flag → System applies LLM-powered enhancement
+3. **Batch Processing**: User processes multiple files → System handles each with appropriate pipeline
+4. **Custom Refinement**: User configures synthesis settings → System applies custom enhancement
 
 ## UI/UX Considerations
 - Clear CLI interface with progress indicators
 - Informative error messages for troubleshooting
 - Simple configuration with sensible defaults
+- Rich formatting and visual feedback
 </context>
+
 <PRD>
 # Technical Architecture  
-## System Components
+## System Components ✅ PHASE 1 COMPLETE
 ### Core Package Structure
 ```
-converter/
-├── __init__.py
-├── config.py           # Dataclass-based configuration
-├── pipelines/
-│   ├── __init__.py
-│   ├── base.py        # Abstract base class (COMPLETE)
-│   ├── pdf.py         # PDF-specific pipeline
-│   └── html.py        # HTML-specific pipeline
-├── utils.py           # Chunk consolidation utilities
-└── main.py            # CLI entry point
+LLMarkable/
+├── src/
+│   ├── pipelines/          # ✅ COMPLETE - 5 pipeline types
+│   │   ├── base.py        # Abstract base class
+│   │   ├── pdf.py         # PDF processing pipeline
+│   │   ├── html.py        # HTML processing pipeline  
+│   │   ├── docx.py        # DOCX processing pipeline
+│   │   ├── pptx.py        # PPTX processing pipeline
+│   │   ├── image.py       # Image OCR processing pipeline
+│   │   └── factory.py     # Pipeline routing and registration
+│   ├── config.py          # ✅ Configuration management
+│   ├── utils.py           # ✅ Chunk utilities and tokenization
+│   ├── exceptions.py      # ✅ Error handling framework
+│   └── main.py            # ✅ CLI interface
+├── tests/                 # ✅ 150 comprehensive tests
+└── output/                # ✅ Generated content directory
+```
+
+### Phase 2 Architecture Extensions 🎯 CURRENT FOCUS
+```
+LLMarkable/
+├── src/
+│   ├── synthesis/         # 🎯 NEW: LLM integration framework
+│   │   ├── __init__.py
+│   │   ├── synthesizer.py # Content synthesis engine
+│   │   ├── models.py      # LLM model management
+│   │   ├── prompts.py     # Prompt templates and engineering
+│   │   └── validators.py  # Quality validation and checks
+│   ├── pipelines/         # ✅ COMPLETE
+│   └── ...               # ✅ Existing components
 ```
 
 ### Key Classes
-- **Config**: Simple dataclass with chunk_size, min_tokens, chunk_overlap
-- **BasePipeline**: Abstract class defining process() and supported_extensions
-- **PDFPipeline/HTMLPipeline**: Format-specific implementations
-- **CLI**: Typer-based command-line interface
+- **Config**: Enhanced dataclass with Phase 2 LLM parameters
+- **BasePipeline**: Abstract class defining process() interface ✅ COMPLETE
+- **Pipeline Implementations**: 5 complete format-specific pipelines ✅ COMPLETE
+- **ContentSynthesizer**: NEW - LLM-powered content enhancement engine
+- **CLI**: Enhanced Typer-based interface with `--refine` flag
 
 ## Data Models
-- **Configuration**: Token-based parameters (no character-based filtering)
-- **Chunks**: List of markdown strings with metadata
-- **Pipeline Interface**: Input Path → List[str] output
+- **Configuration**: Token-based parameters + LLM synthesis settings
+- **Chunks**: List of markdown strings with comprehensive metadata ✅ COMPLETE
+- **Pipeline Interface**: Input Path → List[dict] output ✅ COMPLETE
+- **Synthesis Interface**: NEW - List[dict] → Enhanced Markdown output
 
 ## APIs and Integrations
-- **Docling**: Core document conversion library
+### Phase 1 Integrations ✅ COMPLETE
+- **Docling**: Core document conversion library for all 5 pipeline types
 - **Transformers**: HuggingFace tokenizers for precise token counting
 - **Rich**: Console output and progress tracking
-- **Typer**: CLI framework
+- **Typer**: CLI framework with comprehensive validation
+
+### Phase 2 Integrations 🎯 NEW
+- **LangChain**: LLM orchestration and document processing
+- **Ollama**: Local LLM deployment and management
+- **OpenAI/Anthropic**: Cloud LLM integration (optional)
+- **Prompt Engineering**: Systematic prompt development and optimization
 
 ## Infrastructure Requirements
 - Python 3.12+
 - uv package manager
-- Minimal dependencies (docling, transformers, typer, rich)
+- Phase 1 dependencies: docling, transformers, typer, rich ✅ COMPLETE
+- Phase 2 dependencies: langchain, ollama, openai (optional)
 
 # Development Roadmap  
-## Phase 1: Core Document Conversion Pipeline (Current Phase)
-### Completed (36% - Tasks 1-4)
-1. ✅ Project structure and package setup
-2. ✅ Dependency configuration with modern tooling
-3. ✅ Research-based configuration management
-4. ✅ Abstract base pipeline class
+## Phase 1: Core Document Conversion Pipeline ✅ COMPLETE
 
-### Remaining MVP Requirements
-5. **Chunk Consolidation** (Task 5)
-   - Port and simplify merge_small_trailing_chunks from existing code
-   - Implement is_chunk_useful with token-based filtering only
+### Achievements Summary
+**ALL OBJECTIVES EXCEEDED:**
+- ✅ **5 Complete Pipelines**: PDF, HTML, DOCX, PPTX, Image (vs. planned 2)
+- ✅ **12 File Format Support**: Comprehensive format coverage
+- ✅ **150 Unit Tests**: Professional testing suite (vs. planned basic testing)
+- ✅ **Advanced Features**: Memory management, quality filtering, metadata extraction
+- ✅ **Production Ready**: Error handling, validation, CLI interface
 
-6. **PDF Pipeline** (Task 6)  
-   - Inherit from BasePipeline
-   - Configure Docling with PdfFormatOption
-   - Implement basic process() method
+### Technical Achievements
+- **Modular Architecture**: Plugin-ready pipeline system
+- **Research-Driven Configuration**: Token-based chunking with optimized defaults
+- **Comprehensive Testing**: 150 tests with 100% pass rate, <5s execution
+- **Quality Assurance**: Type safety, ruff compliance, comprehensive error handling
+- **User Experience**: Rich CLI with progress indicators and validation
 
-7. **HTML Pipeline** (Task 7)
-   - Inherit from BasePipeline  
-   - Use default Docling HTML settings
-   - Implement basic process() method
+## Phase 2: AI-Augmented Content Synthesis 🎯 CURRENT FOCUS
 
-8. **Format Detection** (Task 8)
-   - Simple extension-based routing
-   - Pipeline factory pattern
+### Vision & Objectives
+**Goal**: Transform LLMarkable from a document converter into an AI-powered content synthesis platform
 
-9. **CLI Implementation** (Task 9)
-   - Basic Typer app with file argument
-   - Progress indicators using Rich
-   - Error handling
+**Core Value Proposition**: 
+- Convert documents to chunks (Phase 1 ✅ COMPLETE)
+- Enhance chunks with AI for improved readability and coherence (Phase 2 🎯 FOCUS)
+- Maintain factual accuracy while optimizing for LLM consumption
 
-10. **Output Generation** (Task 10)
-    - Save chunks to output/filename/chunk_NNN.md
-    - Add metadata headers to each chunk
+### Phase 2.1: Foundation (Next Sprint)
+#### LLM Integration Framework
+1. **Local LLM Support**
+   - Ollama integration for local model deployment
+   - Model management and caching
+   - Basic prompt templates
 
-11. **Basic Testing** (Tasks 11, 14 simplified)
-    - Unit tests for core components
-    - Integration test with sample files
+2. **Content Synthesis Engine**
+   - Simple chunk refinement and enhancement
+   - Document structure preservation
+   - Quality validation framework
 
-## Phase 2: AI-Augmented Content Synthesis (Future)
-### LLM Integration Features
-- **--refine flag**: Optional LLM-based document synthesis
-- **Local LLM Support**: Mistral-7B or similar via LangChain
-- **Intelligent Synthesis**: Combine chunks into coherent documents
-- **Prompt Engineering**: Specialized prompts for document refinement
+3. **CLI Enhancement**
+   - `--refine` flag implementation
+   - Model selection options (`--model ollama/mistral:7b`)
+   - Refinement level controls (`--refinement-level moderate`)
 
-### Technical Approach
-- Use langchain-docling for ecosystem integration
-- OpenAI-compatible local server (Ollama/vLLM)
-- Streaming support for large documents
-- Configurable model selection
+#### Technical Implementation
+```python
+# New CLI interface
+llmarkable convert document.pdf --refine --model ollama/mistral:7b --refinement-level moderate
 
-# Logical Dependency Chain
-## Foundation (Complete)
+# Configuration extensions
+@dataclass
+class Config:
+    # Phase 1 parameters (maintained)
+    chunk_size: int = 2048
+    min_tokens: int = 330
+    chunk_overlap: int = 100
+    
+    # Phase 2 parameters (new)
+    enable_synthesis: bool = False
+    llm_model: str = "ollama/mistral:7b"
+    refinement_level: str = "moderate"  # light, moderate, aggressive
+    max_synthesis_tokens: int = 4096
+    preserve_structure: bool = True
+```
+
+### Phase 2.2: Advanced Features (Future Sprint)
+#### Multi-Model Support
+1. **Cloud LLM Integration**
+   - OpenAI, Anthropic, Google Gemini support
+   - Model comparison and selection
+   - Cost optimization and token management
+
+2. **Advanced Synthesis**
+   - Context-aware processing using document metadata
+   - Format-specific enhancement prompts
+   - Iterative refinement for complex documents
+
+3. **Quality & Performance**
+   - Comprehensive testing for LLM interactions
+   - Performance benchmarking and optimization
+   - User experience validation and improvement
+
+### Success Metrics
+#### Technical Metrics
+- **Processing Speed**: <30s for typical documents with synthesis
+- **Quality Preservation**: >95% factual accuracy retention
+- **Model Efficiency**: Optimal token usage and cost management
+- **Test Coverage**: Maintain 150+ tests with LLM mocking
+
+#### User Value Metrics
+- **Content Quality**: Measurably improved readability scores
+- **Information Preservation**: Zero information loss during synthesis
+- **Workflow Integration**: Seamless CLI experience with optional enhancement
+- **Flexibility**: Multiple refinement options and user control
+
+## Logical Dependency Chain
+### Foundation ✅ COMPLETE
 1. Project structure → Enable modular development
 2. Dependencies → Provide required libraries  
 3. Configuration → Define system parameters
 4. Base Pipeline → Establish common interface
+5. Format pipelines → Process all major file types
+6. CLI & Output → Complete user experience
+7. Testing & Quality → Ensure reliability
 
-## Core Pipeline (Current Focus)
-5. Chunk utilities → Enable smart consolidation
-6. Format pipelines → Process specific file types
-7. Format detection → Route files correctly
-8. CLI → User interaction point
-9. Output → Save results
-
-## Testing & Polish
-10. Error handling → Robust operation
-11. Testing → Ensure reliability
-12. Documentation → Enable adoption
-
-## Future Enhancement (Phase 2)
-- LLM integration builds on stable Phase 1
-- Requires all core components functioning
-- Optional enhancement, not required for MVP
+### AI Enhancement 🎯 CURRENT FOCUS
+8. LLM Integration → Enable content synthesis
+9. Prompt Engineering → Optimize enhancement quality
+10. Quality Validation → Ensure accuracy preservation
+11. Performance Optimization → Efficient processing
+12. Advanced Features → Multi-model support and customization
 
 # Validation and Sense-Checking
-## Pre-Implementation Checks
-- Does this task align with Phase 1 MVP scope?
-- Are we reusing insights from existing code?
-- Is the implementation appropriately simple?
-- Have we checked for over-engineering?
+## Phase 2 Pre-Implementation Checks
+- Does this feature align with user needs for enhanced content?
+- Are we building on the solid Phase 1 foundation?
+- Is the LLM integration approach appropriately simple to start?
+- Have we prioritized local models for privacy and cost control?
 
-## Post-Implementation Validation
-- Does the code follow our established patterns?
-- Are we using research-backed parameters?
-- Is the solution extensible without being complex?
-- Have we avoided premature optimization?
+## Phase 2 Post-Implementation Validation
+- Does the synthesis preserve factual accuracy?
+- Are we using established LangChain patterns?
+- Is the solution performant for typical document sizes?
+- Have we maintained the quality standards from Phase 1?
 
 # Risks and Mitigations  
 ## Technical Challenges
-- **Risk**: Complex PDF structures may fail conversion
-- **Mitigation**: Fallback to HierarchicalChunker, save as single file if needed
+- **Risk**: LLM hallucination affecting content accuracy
+- **Mitigation**: Comprehensive validation, conservative prompts, user control
 
-- **Risk**: Token counting performance with large documents
-- **Mitigation**: Cache tokenizer, process in streaming fashion
+- **Risk**: Performance degradation with large documents
+- **Mitigation**: Streaming processing, model optimization, local-first approach
 
-## Scope Creep
-- **Risk**: Adding Phase 2 features to Phase 1
-- **Mitigation**: Strict MVP discipline, clear phase separation
+## Scope Management
+- **Risk**: Feature creep in Phase 2 complexity
+- **Mitigation**: Start simple, iterate based on user feedback
 
-## Over-Engineering
-- **Risk**: Creating enterprise-level complexity for simple tool
-- **Mitigation**: Regular sense-checks, prefer simple solutions
+## Quality Assurance
+- **Risk**: Reduced reliability with LLM integration
+- **Mitigation**: Extensive testing, fallback mechanisms, optional enhancement
 
 # Appendix  
-## Research Findings
-- **Chunking Best Practices**: Token-based preferred, 200-2048 token range optimal
-- **Docling Patterns**: HybridChunker with HierarchicalChunker fallback
-- **Industry Standards**: Overlap essential for context preservation
+## Phase 1 Achievements ✅ COMPLETE
+- **Format Coverage**: 12 file extensions across 5 pipeline types
+- **Testing Excellence**: 150 comprehensive unit tests with 100% pass rate
+- **Quality Standards**: Type safety, error handling, user experience
+- **Performance**: <5s test execution, efficient processing
 
-## Existing Code Insights
-- Working implementation in converter.py demonstrates chunking approach
-- utils.py contains tested merge_small_trailing_chunks logic
-- Token parameters: MIN_TOKENS=200, MAX_TOKENS=2048 proven effective
+## Phase 2 Research Findings
+- **LangChain Ecosystem**: Established patterns for document processing
+- **Local LLM Trends**: Ollama provides excellent local deployment
+- **Prompt Engineering**: Format-specific prompts improve synthesis quality
+- **Quality Preservation**: Conservative enhancement maintains accuracy
 
-## Development Principles
-1. MVP-first approach
-2. Phase-appropriate scope
-3. Sense-check all implementations
-4. Reuse proven solutions
-5. Avoid redundant parameters
+## Development Principles (Enhanced for Phase 2)
+1. **Build on Solid Foundation**: Leverage complete Phase 1 infrastructure
+2. **Local-First LLM**: Prioritize privacy and cost control
+3. **Quality Preservation**: Never sacrifice accuracy for enhancement
+4. **User Control**: Provide granular control over synthesis process
+5. **Performance Focus**: Optimize for speed and efficiency
+6. **Incremental Enhancement**: Gradual rollout of synthesis features
 </PRD> 

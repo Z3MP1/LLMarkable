@@ -20,13 +20,17 @@ from .factory import (
     register_pipeline,
 )
 from .html import HTMLPipeline
+from .image import ImagePipeline
 from .pdf import PDFPipeline
+from .pptx import PptxPipeline
 
 __all__ = [
     "BasePipeline",
     "DocxPipeline",
     "HTMLPipeline",
+    "ImagePipeline",
     "PDFPipeline",
+    "PptxPipeline",
     "create_pipeline",
     "get_supported_formats",
     "is_supported_format",
