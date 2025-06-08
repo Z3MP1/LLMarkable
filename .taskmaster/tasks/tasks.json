@@ -496,7 +496,7 @@
       "id": 14,
       "title": "Implement Text-Based Pipelines (TXT, MD, CSV)",
       "description": "Create an ImagePipeline class with proper Docling integration for processing image files using OCR capabilities. This pipeline will handle PNG, JPG, JPEG, and TIFF formats using Docling's InputFormat.IMAGE with intelligent chunking strategies and text extraction. This completes the core document processing pipeline suite for Phase 1.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1,
         4
@@ -511,7 +511,7 @@
           "description": "Set up the foundational structure for image-based pipeline including the base classes, common utilities, and shared configuration in pipelines/image.py",
           "dependencies": [],
           "details": "Create pipelines/image.py file with imports for BasePipeline, HierarchicalChunker, and image processing utilities. Define common methods for image file handling, memory-efficient processing, and error handling patterns. Implement shared utilities for image validation, format detection, and OCR preprocessing. Set up logging and configuration patterns for image processing workflows. Include utilities for handling different image formats and preparing images for Docling's OCR processing.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Unit tests for image file reading, format detection, validation, and error handling with various image types and sizes"
         },
         {
@@ -522,7 +522,7 @@
             1
           ],
           "details": "Set up Docling DocumentConverter with InputFormat.IMAGE configuration for OCR processing. Implement proper image format handling for PNG, JPG, JPEG, and TIFF files. Configure OCR settings and text extraction parameters within Docling's framework. Handle image preprocessing requirements and optimize OCR accuracy. Implement error handling for OCR failures and unsupported image content. Convert Docling's OCR output to structured text format suitable for downstream chunking and processing.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test OCR accuracy with various image types, text layouts, and image qualities. Verify Docling integration and error handling for OCR processing failures"
         },
         {
@@ -534,7 +534,7 @@
             2
           ],
           "details": "Implement ImagePipeline inheriting from BasePipeline with supported_extensions = ['.png', '.jpg', '.jpeg', '.tiff']. Use Docling's OCR capabilities to extract text from images, then apply intelligent chunking strategies to the extracted text content. Implement configurable chunk sizes based on text content rather than image dimensions. Preserve image metadata and source information in chunk metadata. Handle cases where OCR extraction yields minimal or no text. Include memory-efficient processing for large image files and batch processing capabilities. Integrate with existing chunk consolidation utilities while maintaining image source traceability.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test with various image types, scanned documents, screenshots with text, and images with different text densities. Validate chunking logic on OCR-extracted text and metadata preservation"
         },
         {
@@ -545,7 +545,7 @@
             3
           ],
           "details": "Implement comprehensive error handling for corrupted images, unsupported formats, and OCR processing failures. Add image quality assessment and preprocessing to improve OCR accuracy. Implement fallback strategies for low-quality OCR results. Add performance monitoring and memory usage optimization for large image processing batches. Include validation of OCR output quality and confidence scoring. Implement retry mechanisms for failed OCR operations with different processing parameters.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test error scenarios with corrupted files, low-quality images, and edge cases. Verify performance with large image files and batch processing scenarios"
         }
       ]
@@ -556,7 +556,7 @@
       "description": "Create an ImagePipeline class that leverages Docling's OCR capabilities to process image files (.png, .jpg, .jpeg, .tiff) with text extraction and integration with the existing chunking system.",
       "details": "Create pipelines/image.py with ImagePipeline class inheriting from BasePipeline. Configure Docling's SimplePipeline with ImageFormatOption to enable OCR processing for image files. Set supported_extensions = ['.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif']. Implement the process() method that takes a Path input and returns List[str] markdown chunks following the same interface as existing pipelines. Add image format validation using PIL/Pillow to verify file integrity before processing. Implement comprehensive error handling for OCR failures, corrupted images, unsupported formats, and memory issues with large images. Add image preprocessing steps if needed (resize, contrast adjustment) to improve OCR accuracy. Use HybridChunker with HierarchicalChunker fallback for extracted text content. Include metadata preservation for image dimensions, format, and OCR confidence scores. Handle edge cases like empty images, images with no text content, and extremely large files. Integrate with the pipeline factory system for automatic format detection and routing. Add proper logging for OCR processing steps and performance metrics. Consider implementing image compression for memory efficiency during processing.",
       "testStrategy": "Create unit tests for ImagePipeline class covering OCR text extraction accuracy, error handling for corrupted/invalid images, and proper chunking of extracted text. Test with various image formats (.png, .jpg, .jpeg, .tiff) containing different types of text (printed, handwritten, various fonts). Verify integration with pipeline factory for automatic format detection. Test error scenarios including unsupported formats, corrupted files, images without text, and memory constraints with large files. Create integration tests using sample images with known text content to validate OCR accuracy. Test chunk consolidation and token counting for extracted text. Verify metadata preservation and proper markdown output formatting. Include performance tests with large image files and batch processing scenarios.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1,
         4
@@ -570,7 +570,7 @@
       "description": "Extend the existing pipeline factory (factory.py) to register and route all newly implemented file formats, updating the _PIPELINE_REGISTRY dictionary, format detection logic, CLI help text, and error handling for all new format types.",
       "details": "Update the existing factory.py file to integrate all newly implemented pipeline classes. Extend the _PIPELINE_REGISTRY dictionary to include mappings for new formats: '.docx' -> DocxPipeline, '.pptx' -> PptxPipeline, '.txt' -> TxtPipeline, '.md' -> MarkdownPipeline, '.csv' -> CsvPipeline, and image formats ('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif') -> ImagePipeline. Import all new pipeline classes at the top of the file. Update the get_pipeline_for_file() function to handle the expanded format registry and ensure proper instantiation of new pipeline classes. Modify the supported_formats() function to return the complete list of supported extensions including all new formats. Update format detection logic to handle case-insensitive extension matching and multiple extensions for the same pipeline (e.g., image formats). Enhance error handling to provide specific error messages for unsupported formats, including suggestions for similar supported formats. Update any CLI help text or documentation strings to reflect the expanded format support. Ensure backward compatibility with existing PDF and HTML pipeline functionality. Add validation to ensure all registered pipeline classes properly inherit from BasePipeline and implement required methods.",
       "testStrategy": "Create comprehensive unit tests for the updated factory functionality: 1) Test pipeline registration for all new formats by verifying _PIPELINE_REGISTRY contains correct mappings, 2) Test get_pipeline_for_file() with sample files of each new format to ensure correct pipeline class instantiation, 3) Test supported_formats() returns complete list including all new extensions, 4) Test case-insensitive format detection with various extension capitalizations, 5) Test error handling with unsupported file extensions and verify helpful error messages, 6) Test backward compatibility by ensuring existing PDF and HTML functionality remains unchanged, 7) Create integration tests that process sample files of each new format end-to-end through the factory, 8) Test CLI help text updates by verifying documentation reflects new supported formats, 9) Test edge cases like files with no extensions or multiple dots in filenames, 10) Verify all new pipeline classes are properly imported and instantiable through the factory.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         12,
         13,
@@ -585,7 +585,7 @@
           "description": "Extend the _PIPELINE_REGISTRY dictionary in factory.py to include all new format mappings and add necessary imports for all new pipeline classes.",
           "dependencies": [],
           "details": "Add imports for DocxPipeline, PptxPipeline, TxtPipeline, MarkdownPipeline, CsvPipeline, and ImagePipeline at the top of factory.py. Update the _PIPELINE_REGISTRY dictionary to include mappings: '.docx' -> DocxPipeline, '.pptx' -> PptxPipeline, '.txt' -> TxtPipeline, '.md' -> MarkdownPipeline, '.csv' -> CsvPipeline, and image formats ('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif') -> ImagePipeline. Add validation logic to ensure all registered pipeline classes inherit from BasePipeline and implement required methods during module initialization.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Unit tests to verify registry contains all expected mappings, imports are successful, and validation catches invalid pipeline classes"
         },
         {
@@ -596,7 +596,7 @@
             1
           ],
           "details": "Modify get_pipeline_for_file() to normalize file extensions to lowercase for case-insensitive matching. Ensure the function can handle multiple extensions mapping to the same pipeline class (especially for image formats). Update the supported_formats() function to return the complete list of supported extensions including all new formats. Maintain backward compatibility with existing PDF and HTML pipeline functionality. Add proper error handling for file extension detection edge cases.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test with various file extensions in different cases, verify correct pipeline instantiation for each format, and ensure existing functionality remains intact"
         },
         {
@@ -607,7 +607,7 @@
             2
           ],
           "details": "Implement enhanced error handling that provides specific error messages for unsupported formats, including suggestions for similar supported formats using string similarity algorithms. Update any CLI help text, docstrings, and documentation strings throughout factory.py to reflect the complete list of supported formats. Ensure error messages are user-friendly and guide users toward supported alternatives. Add comprehensive logging for format detection and pipeline instantiation processes.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test error handling with unsupported file types, verify helpful error messages are displayed, and validate that all documentation accurately reflects supported formats"
         }
       ]
@@ -618,25 +618,11 @@
       "description": "Create comprehensive unit tests for all newly implemented pipeline classes following the established testing standards. This includes format-specific test suites, mock document testing, error scenario validation, and ensuring >90% test coverage is maintained while keeping execution time under the 4-second target.",
       "details": "Create a comprehensive test suite in tests/test_new_pipelines.py covering all newly implemented pipeline classes (DocxPipeline, PptxPipeline, TxtPipeline, MarkdownPipeline, CsvPipeline, ImagePipeline). Implement test classes for each pipeline type: TestDocxPipeline, TestPptxPipeline, TestTextPipelines, TestImagePipeline. For each pipeline, create tests for: 1) Basic functionality with valid input files, 2) Edge cases (empty files, corrupted files, unsupported formats), 3) Error handling and exception scenarios, 4) Output format validation (markdown chunks), 5) Token counting and chunk consolidation, 6) Performance benchmarks. Use pytest fixtures to create mock documents and test files. Implement parameterized tests for multiple file formats within each pipeline type. Create integration tests that verify the updated factory.py correctly routes files to appropriate pipelines. Use unittest.mock to mock Docling components for faster test execution. Implement test data generators for creating synthetic documents with known content for validation. Add performance tests that ensure individual pipeline processing stays under 1-second per file and total test suite execution remains under 4 seconds. Use pytest-cov for coverage reporting and ensure >90% code coverage across all new pipeline modules. Include tests for concurrent processing scenarios and memory usage validation.",
       "testStrategy": "Execute the test suite using pytest with coverage reporting: `pytest tests/test_new_pipelines.py --cov=pipelines --cov-report=html --cov-fail-under=90`. Verify all test classes pass without errors and achieve >90% coverage. Run performance benchmarks to ensure total execution time stays under 4 seconds. Test with sample files for each supported format (.docx, .pptx, .txt, .md, .csv, .png, .jpg) to validate end-to-end functionality. Use pytest-benchmark to measure individual pipeline performance and ensure processing times meet targets. Validate error handling by testing with intentionally corrupted or invalid files. Run integration tests to verify factory routing works correctly for all new formats. Check memory usage during test execution to ensure no memory leaks. Verify mock implementations correctly simulate Docling behavior without external dependencies.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         16
       ],
       "priority": "medium",
-      "subtasks": []
-    },
-    {
-      "id": 18,
-      "title": "XML Format Pipeline Implementation (JATS, USPTO)",
-      "description": "Create an XMLPipeline class that processes specialized XML formats including PubMed JATS and USPTO patent documents using Docling's XML processing capabilities with content type detection, format-specific parsing, and metadata extraction.",
-      "details": "Create pipelines/xml.py with XMLPipeline class inheriting from BasePipeline. Configure Docling's SimplePipeline with XmlFormatOption to handle XML document processing. Set supported_extensions = ['.xml']. Implement content type detection by examining XML root elements and namespaces to identify JATS articles (root elements like 'article' with JATS namespace), USPTO patents (root elements like 'us-patent-grant' or 'us-patent-application'), and generic XML documents. For JATS documents, extract metadata including article title, authors, journal information, DOI, publication date, and abstract. For USPTO patents, extract patent number, title, inventors, assignee, filing date, grant date, and claims. Implement format-specific parsing strategies: for JATS, prioritize abstract, body text, and figure captions while preserving section hierarchy; for USPTO, focus on claims, description, and summary sections. Use HybridChunker with HierarchicalChunker fallback for structured content preservation. Apply chunk consolidation using utils.py functions with appropriate token parameters. Include robust error handling for malformed XML, unsupported schemas, and encoding issues. Add XML validation and namespace handling. Ensure proper handling of embedded elements like tables, figures, and references while maintaining document structure in markdown output.",
-      "testStrategy": "Create unit tests for XMLPipeline class covering JATS and USPTO document processing, content type detection accuracy, metadata extraction validation, and chunking behavior. Test with sample JATS articles from PubMed and USPTO patent XML files to verify format-specific parsing. Validate that extracted metadata is correctly formatted and complete. Test error handling with malformed XML, unsupported schemas, and encoding issues. Verify chunk consolidation produces appropriate token counts and maintains document structure. Test integration with pipeline factory for proper XML file routing. Include performance tests with large XML documents to ensure processing efficiency. Validate markdown output preserves hierarchical structure and formatting for both JATS and USPTO formats.",
-      "status": "pending",
-      "dependencies": [
-        1,
-        4
-      ],
-      "priority": "low",
       "subtasks": []
     }
   ]
