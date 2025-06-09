@@ -232,7 +232,7 @@ class TestHTMLPipelineCreateChunks:
             test_file = tmp_path / "test.html"
             content = "First paragraph content that is long enough to pass the minimum length threshold.\n\nSecond paragraph that is also sufficiently long for processing."
 
-            chunks = pipeline._create_chunks(content, test_file)
+            chunks = pipeline._create_chunks(content, test_file)  # noqa: SLF001
 
             assert len(chunks) == 2
 
@@ -262,7 +262,7 @@ class TestHTMLPipelineCreateChunks:
             test_file = tmp_path / "test.html"
             content = "Short.\n\nThis is a longer paragraph that meets the minimum length requirement for processing.\n\nTiny."
 
-            chunks = pipeline._create_chunks(content, test_file)
+            chunks = pipeline._create_chunks(content, test_file)  # noqa: SLF001
 
             # Should only have the long paragraph
             assert len(chunks) == 1
@@ -283,7 +283,7 @@ class TestHTMLPipelineCreateChunks:
             test_file = tmp_path / "test.html"
             content = ""
 
-            chunks = pipeline._create_chunks(content, test_file)
+            chunks = pipeline._create_chunks(content, test_file)  # noqa: SLF001
 
             assert chunks == []
 
@@ -299,7 +299,7 @@ class TestHTMLPipelineCreateChunks:
             test_file = tmp_path / "test.html"
             content = "   \n  This paragraph has leading and trailing whitespace that should be removed.  \n   \n"
 
-            chunks = pipeline._create_chunks(content, test_file)
+            chunks = pipeline._create_chunks(content, test_file)  # noqa: SLF001
 
             assert len(chunks) == 1
             assert chunks[0]["content"] == "This paragraph has leading and trailing whitespace that should be removed."

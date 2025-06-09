@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Unit tests for DOCX pipeline following pytest best practices.
 
@@ -133,7 +132,7 @@ class TestDocxPipelineProcessing:
                 Mock(text="chunk2"),
             ]
 
-            result = pipeline._chunk_document(mock_docling_document)
+            result = pipeline._chunk_document(mock_docling_document)  # noqa: SLF001
 
             assert isinstance(result, list)
             assert len(result) == 2
