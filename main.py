@@ -49,6 +49,8 @@ class CLIOptions:
     use_granite_vision: bool = False
     pdf_backend: str | None = None
     artifacts_path: str | None = None
+    refine: bool = False
+    llm_provider: str | None = None
 
 
 def version_callback(value: bool) -> None:
@@ -176,6 +178,8 @@ def _create_config_from_options(options: CLIOptions) -> Config:
     config.use_granite_vision = options.use_granite_vision
     config.pdf_backend = options.pdf_backend
     config.artifacts_path = options.artifacts_path
+    config.refine = options.refine
+    config.llm_provider = options.llm_provider
 
     return config
 
@@ -365,6 +369,20 @@ def convert(  # noqa: PLR0913
             help="Use IBM Granite vision model for picture description (default: disabled)",
         ),
     ] = False,
+    refine: Annotated[
+        bool,
+        typer.Option(
+            "--refine/--no-refine",
+            help="Refine content with an LLM (Phase 2 placeholder)",
+        ),
+    ] = False,
+    llm_provider: Annotated[
+        str | None,
+        typer.Option(
+            "--llm-provider",
+            help="LLM provider to use for refinement (Phase 2 placeholder)",
+        ),
+    ] = None,
     pdf_backend: Annotated[
         str | None,
         typer.Option(
@@ -392,6 +410,9 @@ def convert(  # noqa: PLR0913
     """
     Convert a document to LLM-friendly Markdown format.
 
+    Phase 2 will add optional LLM-powered refinement controlled by the
+    ``--refine`` flag and provider selection.
+
     Examples:
         llmarkable document.pdf
         llmarkable document.html --output-dir results/ --chunk-size 1024
@@ -418,6 +439,8 @@ def convert(  # noqa: PLR0913
         enable_formula_enrichment=enable_formula_enrichment,
         enable_picture_description=enable_picture_description,
         use_granite_vision=use_granite_vision,
+        refine=refine,
+        llm_provider=llm_provider,
         pdf_backend=pdf_backend,
         artifacts_path=artifacts_path,
     )
@@ -468,6 +491,8 @@ def info() -> None:
     console.print(f"   Output Directory: {config.output_dir}")
     console.print(f"   Preserve Tables: {config.preserve_tables}")
     console.print(f"   Preserve Images: {config.preserve_images}")
+    console.print(f"   Refine: {config.refine}")
+    console.print(f"   LLM Provider: {config.llm_provider}")
 
 
 def _show_config_summary(input_file: Path, config: Config) -> None:
@@ -480,6 +505,8 @@ def _show_config_summary(input_file: Path, config: Config) -> None:
     console.print(f"   Chunk Overlap: {config.chunk_overlap} tokens")
     console.print(f"   Preserve Tables: {config.preserve_tables}")
     console.print(f"   Preserve Images: {config.preserve_images}")
+    console.print(f"   Refine: {config.refine}")
+    console.print(f"   LLM Provider: {config.llm_provider}")
     console.print()
 
 

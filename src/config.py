@@ -10,7 +10,11 @@ from pathlib import Path
 
 @dataclass
 class Config:
-    """Configuration settings for document conversion pipeline."""
+    """Configuration settings for document conversion pipeline.
+
+    Phase 2 will introduce optional LLM-powered refinement using these
+    configuration flags.
+    """
 
     # Validation constants
     MIN_MULTIPLIER: float = 0.1
@@ -116,6 +120,10 @@ class Config:
     # Pre-defined vision models (shortcuts)
     use_granite_vision: bool = False  # Use IBM Granite vision model
     use_smolvlm: bool = False  # Use SmolVLM model
+
+    # Phase 2 LLM refinement
+    refine: bool = False  # Enable content refinement (Phase 2 feature)
+    llm_provider: str | None = None  # Selected provider name for refinement
 
     @classmethod
     def default(cls) -> "Config":

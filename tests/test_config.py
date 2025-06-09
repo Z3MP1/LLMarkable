@@ -24,6 +24,8 @@ class TestConfigDefaults:
         assert config.preserve_tables is True
         assert config.verbose is False
         assert config.tokenizer_model == "BAAI/bge-small-en-v1.5"
+        assert config.refine is False
+        assert config.llm_provider is None
 
     def test_should_be_immutable_after_creation(self) -> None:
         """Test that config values can be modified after creation."""
