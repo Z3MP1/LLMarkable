@@ -109,17 +109,24 @@ def extract_text_content(chunk: object) -> str:
         String content of the chunk
 
     """
-    # Check for dictionary-like objects first
+    # Check for common object attributes first, ensuring actual string values
+    page_content = getattr(chunk, "page_content", None)
+    if isinstance(page_content, str):
+        return page_content
+
+    text = getattr(chunk, "text", None)
+    if isinstance(text, str):
+        return text
+
+    content_attr = getattr(chunk, "content", None)
+    if isinstance(content_attr, str):
+        return content_attr
+
+    # Then check for dictionary-like objects
     if hasattr(chunk, "get") and callable(chunk.get):
         content = chunk.get("content", "")
         return str(content)
-    # Then check for object attributes
-    if hasattr(chunk, "page_content"):
-        return str(chunk.page_content)
-    if hasattr(chunk, "text"):
-        return str(chunk.text)
-    if hasattr(chunk, "content"):
-        return str(chunk.content)
+
     return str(chunk)
 
 

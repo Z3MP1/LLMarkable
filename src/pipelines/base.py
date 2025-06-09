@@ -16,7 +16,12 @@ from docling_core.types.doc.document import DoclingDocument
 from rich.console import Console
 
 from src.config import Config
-from src.utils import get_tokenizer, is_chunk_useful, merge_small_trailing_chunks
+from src.utils import (
+    extract_text_content,
+    get_tokenizer,
+    is_chunk_useful,
+    merge_small_trailing_chunks,
+)
 
 
 class BasePipeline(ABC):
@@ -144,7 +149,7 @@ class BasePipeline(ABC):
 
         for i, chunk in enumerate(chunks):
             # Extract text content
-            content = chunk.text
+            content = extract_text_content(chunk)
 
             # Apply content filtering with shared logic
             if not is_chunk_useful(content, self.config):
