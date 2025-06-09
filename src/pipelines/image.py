@@ -13,10 +13,8 @@ from docling_core.transforms.chunker.base import BaseChunk
 from docling_core.transforms.chunker.hierarchical_chunker import HierarchicalChunker
 from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
 from docling_core.types.doc.document import DoclingDocument
-from rich.console import Console
-
 from src.config import Config
-from src.utils import get_tokenizer, is_chunk_useful, merge_small_trailing_chunks
+from src.utils import is_chunk_useful, merge_small_trailing_chunks
 
 from .base import BasePipeline
 
@@ -27,10 +25,6 @@ class ImagePipeline(BasePipeline):
     def __init__(self, config: Config) -> None:
         """Initialize Image pipeline with Docling OCR configuration."""
         super().__init__(config)
-        self.console = Console()
-
-        # Get tokenizer using the utils function
-        self.tokenizer = get_tokenizer(config)
 
         # Initialize chunkers with optimized configuration following Docling best practices
         from src.serializers import ImageOptimizedSerializerProvider
