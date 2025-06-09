@@ -102,8 +102,8 @@ class TestHTMLPipelineProcess:
             with pytest.raises(ValueError, match="Unsupported file extension"):
                 pipeline.process(unsupported_file)
 
-    @patch("src.pipelines.html.merge_small_trailing_chunks")
-    @patch("src.pipelines.html.is_chunk_useful")
+    @patch("src.pipelines.base.merge_small_trailing_chunks")
+    @patch("src.pipelines.base.is_chunk_useful")
     def test_should_process_html_file_successfully(
         self,
         mock_is_useful: Mock,

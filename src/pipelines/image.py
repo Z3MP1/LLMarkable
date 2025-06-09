@@ -14,7 +14,6 @@ from docling_core.transforms.chunker.hierarchical_chunker import HierarchicalChu
 from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
 from docling_core.types.doc.document import DoclingDocument
 from src.config import Config
-from src.utils import is_chunk_useful, merge_small_trailing_chunks
 
 from .base import BasePipeline
 
@@ -237,72 +236,15 @@ class ImagePipeline(BasePipeline):
         chunks: list[BaseChunk],
         input_path: Path,
     ) -> list[dict[str, Any]]:
-        """
-        Process raw chunks into final structured format.
+        """Process image chunks using shared base implementation."""
 
-        Args:
-            chunks: List of BaseChunk objects from chunker
-            input_path: Original file path for metadata
-
-        Returns:
-            List of processed chunks with metadata
-
-        """
-        processed_chunks: list[dict[str, Any]] = []
-        base_metadata = {
-            "source_file": input_path.name,
-            "file_type": "image",
-            "processing_pipeline": "image_ocr_docling",
-            "image_format": input_path.suffix.lower().lstrip("."),
-        }
-
-        for i, chunk in enumerate(chunks):
-            # Extract text content
-            content = chunk.text
-
-            # Apply OCR confidence filtering if available
-            ocr_confidence = None
-            if hasattr(chunk.meta, "ocr_confidence"):
-                ocr_confidence = chunk.meta.ocr_confidence
-                if ocr_confidence < self.config.image_min_text_confidence:
-                    if self.config.verbose:
-                        msg = f"Skipping chunk {i} (OCR confidence {ocr_confidence:.2f} below threshold {self.config.image_min_text_confidence})"
-                        self.console.print(f"  -> {msg}")
-                    continue
-
-            # Apply content filtering
-            if not is_chunk_useful(content, self.config):
-                if self.config.verbose:
-                    self.console.print(f"  -> Skipping chunk {i} (insufficient content)")
-                continue
-
-            # Create enhanced chunk metadata with OCR information
-            chunk_metadata = {
-                **base_metadata,
-                "chunk_id": i,
-                "token_count": self.tokenizer.count_tokens(content),
-                "ocr_confidence": ocr_confidence,
-                "ocr_engine": self.config.image_ocr_engine,
-                "chunk_metadata": chunk.meta.export_json_dict() if hasattr(chunk.meta, "export_json_dict") else {},
-            }
-
-            processed_chunks.append(
-                {
-                    "content": content,
-                    "metadata": chunk_metadata,
-                },
-            )
-
-        # Apply trailing chunk consolidation
-        if self.config.merge_small_trailing_chunks:
-            processed_chunks = merge_small_trailing_chunks(
-                processed_chunks,
-                self.config,
-                tokenizer=self.tokenizer,
-                verbose=self.config.verbose,
-            )
-
-        return processed_chunks
+        return self._process_chunks_with_metadata(
+            chunks=chunks,
+            input_path=input_path,
+            file_type='image',
+            processing_pipeline='image_ocr_docling',
+            additional_metadata={'image_format': input_path.suffix.lower().lstrip('.') , 'ocr_engine': self.config.image_ocr_engine},
+        )
 
     def supports_file(self, file_path: Path) -> bool:
         """Check if this pipeline supports image files."""
