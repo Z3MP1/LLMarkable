@@ -17,7 +17,6 @@ from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
 from docling_core.types.doc.document import DoclingDocument
 from src.config import Config
 from src.serializers import TableOptimizedSerializerProvider
-from src.utils import is_chunk_useful, merge_small_trailing_chunks
 
 from .base import BasePipeline
 
@@ -165,59 +164,14 @@ class DocxPipeline(BasePipeline):
         chunks: list[BaseChunk],
         input_path: Path,
     ) -> list[dict[str, Any]]:
-        """
-        Process raw chunks into final structured format.
+        """Process DOCX chunks using shared base implementation."""
 
-        Args:
-            chunks: List of BaseChunk objects from chunker
-            input_path: Original file path for metadata
-
-        Returns:
-            List of processed chunks with metadata
-
-        """
-        processed_chunks: list[dict[str, Any]] = []
-        base_metadata = {
-            "source_file": input_path.name,
-            "file_type": "docx",
-            "processing_pipeline": "docx_docling",
-        }
-
-        for i, chunk in enumerate(chunks):
-            # Extract text content
-            content = chunk.text
-
-            # Apply content filtering
-            if not is_chunk_useful(content, self.config):
-                if self.config.verbose:
-                    self.console.print(f"  -> Skipping chunk {i} (insufficient content)")
-                continue
-
-            # Create chunk metadata
-            chunk_metadata = {
-                **base_metadata,
-                "chunk_id": i,
-                "token_count": self.tokenizer.count_tokens(content),
-                "chunk_metadata": chunk.meta.export_json_dict() if hasattr(chunk.meta, "export_json_dict") else {},
-            }
-
-            processed_chunks.append(
-                {
-                    "content": content,
-                    "metadata": chunk_metadata,
-                },
-            )
-
-        # Apply trailing chunk consolidation
-        if self.config.merge_small_trailing_chunks:
-            processed_chunks = merge_small_trailing_chunks(
-                processed_chunks,
-                self.config,
-                tokenizer=self.tokenizer,
-                verbose=self.config.verbose,
-            )
-
-        return processed_chunks
+        return self._process_chunks_with_metadata(
+            chunks=chunks,
+            input_path=input_path,
+            file_type='docx',
+            processing_pipeline='docx_docling',
+        )
 
     def supports_file(self, file_path: Path) -> bool:
         """Check if this pipeline supports DOCX files."""
