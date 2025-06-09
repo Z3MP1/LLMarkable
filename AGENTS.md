@@ -50,6 +50,16 @@ Some tools or environments may require pip and a requirements.txt file. This is 
 
 ---
 
+## Note on Heavy Dependencies (torch, torchvision, nvidia-*)
+
+- The `requirements.txt` file **does not include** heavy packages such as `torch`, `torchvision`, or any `nvidia-*` CUDA/CUDNN libraries. These have been intentionally removed to support lightweight and resource-constrained environments.
+- **Why?** The current implementation of LLMarkable does not require these packages. All OCR and VLM enrichment features are handled via Docling and will gracefully fall back to CPU if GPU libraries are not present.
+- If you need GPU acceleration for OCR or vision-language enrichment in the future, you can re-add these packages as needed. For now, their absence will not cause errors or break any pipeline functionality.
+- This pruning ensures that the environment can be set up quickly and reliably, even in minimal or containerized systems.
+- The `requirements.txt` is intentionally pruned for compatibility and performance—do not add these packages back unless GPU support is explicitly required.
+
+---
+
 # Target Structure & Functionality for LLMarkable Agents
 
 ## Project Goals & Architecture
