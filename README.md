@@ -65,6 +65,16 @@ This project uses `uv` for package management and requires Python 3.12+.
     uv sync
     ```
 
+#### Alternative: Install with pip and requirements.txt
+
+If you prefer, you can install all dependencies using pip and the provided requirements.txt:
+
+```bash
+pip install -r requirements.txt
+```
+
+This will install the same set of dependencies as `uv sync`. However, `uv` is recommended for optimal performance and reproducibility.
+
 ### Usage
 
 #### Basic Conversion
