@@ -23,6 +23,7 @@ class TestConfigDefaults:
         assert config.chunk_overlap == 100
         assert config.preserve_tables is True
         assert config.verbose is False
+        assert config.tokenizer_model == "BAAI/bge-small-en-v1.5"
 
     def test_should_be_immutable_after_creation(self) -> None:
         """Test that config values can be modified after creation."""
@@ -94,6 +95,14 @@ class TestConfigValidation:
             ValidationError,
             match="chunk_overlap .* must be less than chunk_size",
         ):
+            config.validate()
+
+    def test_should_raise_error_when_tokenizer_model_empty(self) -> None:
+        """Test validation fails when tokenizer_model is empty."""
+        config = Config.default()
+        config.tokenizer_model = ""
+
+        with pytest.raises(ValidationError, match="tokenizer_model must be a non-empty string"):
             config.validate()
 
 

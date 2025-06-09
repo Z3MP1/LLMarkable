@@ -142,7 +142,7 @@ python main.py info
 - **Directory Structure**: Clean organization with configurable output modes
 
 #### Testing Infrastructure
-- **Comprehensive Coverage**: 103 tests covering all components
+ - **Comprehensive Coverage**: 104 tests covering all components
 - **Test Organization**: Dedicated `tests/` directory with proper structure
 - **Quality Standards**: Unit tests only, fast execution, comprehensive mocking
 - **Coverage Reporting**: HTML coverage reports with detailed metrics
@@ -155,7 +155,7 @@ python main.py info
 ### 🎯 Feature Highlights
 
 #### Intelligent Chunking
-- **Token-Based Processing**: Uses BAAI/bge-small-en-v1.5 tokenizer for precise token counting
+- **Token-Based Processing**: Configurable tokenizer model (default `BAAI/bge-small-en-v1.5`) for precise token counting
 - **Research-Driven Defaults**: Chunk size (2048 tokens), min tokens (330), overlap (100)
 - **Content Preservation**: Intelligent merging of small chunks to prevent information loss
 - **Quality Filtering**: Automatic filtering of low-quality or minimal content
@@ -167,7 +167,7 @@ python main.py info
 - **Comprehensive Validation**: Input validation with detailed parameter checking
 
 #### Professional Testing
-- **103 Passing Tests**: Complete coverage of all components and edge cases
+ - **104 Passing Tests**: Complete coverage of all components and edge cases
 - **Fast Execution**: All tests run in under 4 seconds
 - **Proper Isolation**: Unit tests with comprehensive mocking
 - **Realistic Scenarios**: Tests use actual tokenizer behavior and realistic data
@@ -182,7 +182,7 @@ This project follows comprehensive testing best practices:
 - **Fast Execution**: Tests run in milliseconds (under 100ms each)
 - **Test Organization**: Tests are organized in the `tests/` directory with clear naming conventions
 - **Fixtures**: Reusable test fixtures for common setup scenarios in `conftest.py`
-- **Coverage**: Comprehensive test coverage with 103 tests across all components
+ - **Coverage**: Comprehensive test coverage with 104 tests across all components
 - **Parametrization**: Use of pytest.mark.parametrize for testing multiple scenarios efficiently
 
 #### Running Tests
@@ -321,7 +321,7 @@ For detailed development guidelines, see [development.md](development.md).
 
 ## 10. Current Test Metrics
 
-- **Total Tests**: 103 passing
+ - **Total Tests**: 104 passing
 - **Execution Time**: Under 4 seconds for full suite
 - **Components Covered**:
   - Configuration system (20 tests)
@@ -335,7 +335,7 @@ For detailed development guidelines, see [development.md](development.md).
 ## 11. Technical Specifications
 
 ### Tokenization
-- **Model**: BAAI/bge-small-en-v1.5 (384 dimensions, 512 token limit)
+- **Default Model**: BAAI/bge-small-en-v1.5 (384 dimensions, 512 token limit)
 - **Purpose**: Semantic embeddings optimized for retrieval tasks
 - **Performance**: Fast inference with good semantic understanding
 
