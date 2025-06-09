@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 LLMarkable - Document Conversion Tool.
 
@@ -6,6 +5,7 @@ Transform source files (PDF, HTML, etc.) into remarkable, LLM-friendly Markdown 
 """
 
 import re
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any
@@ -29,6 +29,20 @@ app = typer.Typer(
     add_completion=False,
 )
 console = Console()
+
+
+@dataclass
+class CLIOptions:
+    """Grouped CLI options for conversion."""
+
+    output_dir: Path | None = None
+    chunk_size: int | None = None
+    min_tokens: int | None = None
+    chunk_overlap: int | None = None
+    preserve_tables: bool = True
+    preserve_images: bool = False
+    verbose: bool = False
+    individual_chunks: bool = False
 
 
 def version_callback(value: bool) -> None:
@@ -133,36 +147,23 @@ def _validate_input_file(input_file: Path, *, verbose: bool = False) -> None:
         raise typer.Exit(1) from e
 
 
-def _create_config_from_args(
-    output_dir: Path | None,
-    chunk_size: int | None,
-    min_tokens: int | None,
-    chunk_overlap: int | None,
-    *,
-    preserve_tables: bool,
-    preserve_images: bool,
-    verbose: bool,
-    individual_chunks: bool,
-) -> Config:
-    """Create configuration from CLI arguments."""
+def _create_config_from_options(options: CLIOptions) -> Config:
+    """Create configuration from CLI options."""
     config = Config.default()
 
-    # Override configuration with CLI arguments
-    if output_dir:
-        config.output_dir = str(output_dir)
-    if chunk_size:
-        config.chunk_size = chunk_size
-    if min_tokens:
-        config.min_tokens = min_tokens
-    if chunk_overlap is not None:
-        config.chunk_overlap = chunk_overlap
-    config.preserve_tables = preserve_tables
-    config.preserve_images = preserve_images
-    config.verbose = verbose
-    config.log_level = "DEBUG" if verbose else "INFO"
-
-    # Add individual_chunks to config (we'll add this to Config class)
-    config.individual_chunks = individual_chunks
+    if options.output_dir:
+        config.output_dir = str(options.output_dir)
+    if options.chunk_size:
+        config.chunk_size = options.chunk_size
+    if options.min_tokens:
+        config.min_tokens = options.min_tokens
+    if options.chunk_overlap is not None:
+        config.chunk_overlap = options.chunk_overlap
+    config.preserve_tables = options.preserve_tables
+    config.preserve_images = options.preserve_images
+    config.verbose = options.verbose
+    config.log_level = "DEBUG" if options.verbose else "INFO"
+    config.individual_chunks = options.individual_chunks
 
     return config
 
@@ -264,7 +265,7 @@ def _process_document(input_file: Path, config: Config, output_path: Path) -> No
 
 
 @app.command()
-def convert(
+def convert(  # noqa: PLR0913
     input_file: Annotated[
         Path,
         typer.Argument(help="Input file to convert (PDF, HTML)"),
@@ -349,17 +350,19 @@ def convert(
     # Validate file format
     _validate_file_format(input_file)
 
-    # Create configuration from arguments
-    config = _create_config_from_args(
-        output_dir,
-        chunk_size,
-        min_tokens,
-        chunk_overlap,
+    # Group CLI options and create configuration
+    options = CLIOptions(
+        output_dir=output_dir,
+        chunk_size=chunk_size,
+        min_tokens=min_tokens,
+        chunk_overlap=chunk_overlap,
         preserve_tables=preserve_tables,
         preserve_images=preserve_images,
         verbose=verbose,
         individual_chunks=individual_chunks,
     )
+
+    config = _create_config_from_options(options)
 
     # Validate configuration and create output directory
     output_path = _validate_and_create_output_dir(config)

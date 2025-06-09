@@ -124,7 +124,7 @@ class TestPPTXPipelineProcessing:
                 Mock(text="Slide 2: Content"),
             ]
 
-            result = pipeline._chunk_document(mock_docling_document)
+            result = pipeline._chunk_document(mock_docling_document)  # noqa: SLF001
 
             assert isinstance(result, list)
             assert len(result) == 2

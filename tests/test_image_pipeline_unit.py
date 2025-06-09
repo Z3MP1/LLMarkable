@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Unit tests for Image pipeline following pytest best practices.
 
@@ -132,7 +131,7 @@ class TestImagePipelineProcessing:
                 Mock(text="Additional text content"),
             ]
 
-            result = pipeline._chunk_document(mock_docling_document)
+            result = pipeline._chunk_document(mock_docling_document)  # noqa: SLF001
 
             assert isinstance(result, list)
             assert len(result) == 2
@@ -157,7 +156,7 @@ class TestImagePipelineProcessing:
             mock_chunks = [Mock(text="chunk1"), Mock(text="chunk2")]
             mock_hierarchical_chunker.chunk.return_value = iter(mock_chunks)
 
-            result = pipeline._chunk_document(mock_docling_document)
+            result = pipeline._chunk_document(mock_docling_document)  # noqa: SLF001
 
             assert result == mock_chunks
             mock_hierarchical_chunker.chunk.assert_called_once_with(
