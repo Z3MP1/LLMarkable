@@ -10,7 +10,8 @@ from pathlib import Path
 
 @dataclass
 class Config:
-    """Configuration settings for document conversion pipeline.
+    """
+    Configuration settings for document conversion pipeline.
 
     Phase 2 will introduce optional LLM-powered refinement using these
     configuration flags.

@@ -28,7 +28,7 @@ from .base import BasePipeline
 class PDFPipeline(BasePipeline):
     """PDF document processing pipeline with Docling integration."""
 
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: Config) -> None:  # noqa: C901, PLR0912, PLR0915 - initialization logic is extensive
         """Initialize PDF pipeline with optimized Docling configuration."""
         # Base initialization now handles: config, console, tokenizer
         super().__init__(config)

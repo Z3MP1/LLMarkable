@@ -11,7 +11,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from src.config import Config
-from src.exceptions import ConversionError
+from src.exceptions import ChunkingError, ConversionError
 from src.pipelines.html import HTMLPipeline
 
 
@@ -207,7 +207,7 @@ class TestHTMLPipelineProcess:
 
                 pipeline = HTMLPipeline(test_config)
 
-                with pytest.raises(Exception):  # Will be wrapped as ChunkingError
+                with pytest.raises(ChunkingError):
                     pipeline.process(html_file)
 
     def test_should_re_raise_llmarkable_errors(

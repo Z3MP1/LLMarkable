@@ -93,7 +93,10 @@ class BasePipeline(ABC):
             except Exception as fallback_err:
                 from src.exceptions import ChunkingError
 
-                msg = f"Both chunking strategies failed for {format_name}. HybridChunker: {err}, HierarchicalChunker: {fallback_err}"
+                msg = (
+                    f"Both chunking strategies failed for {format_name}. "
+                    f"HybridChunker: {err}, HierarchicalChunker: {fallback_err}"
+                )
                 raise ChunkingError(
                     msg,
                     chunker_type="fallback_chain",
