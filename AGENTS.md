@@ -47,3 +47,27 @@ Some tools or environments may require pip and a requirements.txt file. This is 
   - or `pip install [package] --system`
   can sometimes resolve issues, especially in certain environments (e.g., IDEs, containers, or when using system Python).
 - The `requirements.txt` file is provided **only** for compatibility with such tools and should not be referenced elsewhere in the project or documentation.
+
+---
+
+# Target Structure & Functionality for LLMarkable Agents
+
+## Project Goals & Architecture
+- LLMarkable is a modular, format-specific document conversion system. Each supported format (PDF, HTML, DOCX, PPTX, Image) has its own pipeline, leveraging format-specific features for optimal quality.
+- The primary goal is to produce high-quality, LLM-friendly Markdown chunks, preserving all information and structure, and optimizing for RAG and AI-powered workflows.
+- Token-based chunking, smart consolidation (merging small/low-info chunks), and research-backed parameters (chunk_size=2048, min_tokens=330, chunk_overlap=100) are required in all pipelines.
+- The system is extensible: new file formats and LLM-powered synthesis (Phase 2) are supported via a plugin-ready architecture.
+- Robust error handling, type safety (mypy strict), and comprehensive, fast, isolated testing are mandatory.
+
+## Implementation & Workflow Rules
+- Follow the architecture and requirements in [README.md](README.md) and [PRD.txt](.taskmaster/templates/PRD.txt) for all tasks and features.
+- All code must:
+  - Pass all tests in the `tests/` directory
+  - Pass `ruff` linting (unless a well-reasoned ignore is added via `# noqa` or `pyproject.toml`)
+  - Pass `mypy` type checking (strict mode)
+- If ignoring a ruff lint error, the agent must document the reason (in code or commit message) and prefer project-wide consistency.
+- Each task/PR must close with all tests, ruff, and mypy checks passing.
+
+## References
+- See [README.md](README.md) for project structure, usage, and development workflow.
+- See [PRD.txt](.taskmaster/templates/PRD.txt) for detailed requirements, architecture, and roadmap.
