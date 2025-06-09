@@ -8,6 +8,7 @@ class TestCLIConfigParsing:
     """Ensure CLI options are stored in Config."""
 
     def test_should_store_refine_options(self) -> None:
+        """Store refine options from CLI into Config."""
         options = CLIOptions(refine=True, llm_provider="noop")
         config = _create_config_from_options(options)
 

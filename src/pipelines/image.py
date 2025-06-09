@@ -13,6 +13,7 @@ from docling_core.transforms.chunker.base import BaseChunk
 from docling_core.transforms.chunker.hierarchical_chunker import HierarchicalChunker
 from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
 from docling_core.types.doc.document import DoclingDocument
+
 from src.config import Config
 
 from .base import BasePipeline
@@ -21,7 +22,7 @@ from .base import BasePipeline
 class ImagePipeline(BasePipeline):
     """Image processing pipeline with OCR capabilities using Docling."""
 
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: Config) -> None:  # noqa: C901, PLR0912, PLR0915 - initialization logic is extensive
         """Initialize Image pipeline with Docling OCR configuration."""
         super().__init__(config)
 
@@ -237,13 +238,15 @@ class ImagePipeline(BasePipeline):
         input_path: Path,
     ) -> list[dict[str, Any]]:
         """Process image chunks using shared base implementation."""
-
         return self._process_chunks_with_metadata(
             chunks=chunks,
             input_path=input_path,
-            file_type='image',
-            processing_pipeline='image_ocr_docling',
-            additional_metadata={'image_format': input_path.suffix.lower().lstrip('.') , 'ocr_engine': self.config.image_ocr_engine},
+            file_type="image",
+            processing_pipeline="image_ocr_docling",
+            additional_metadata={
+                "image_format": input_path.suffix.lower().lstrip("."),
+                "ocr_engine": self.config.image_ocr_engine,
+            },
         )
 
     def supports_file(self, file_path: Path) -> bool:

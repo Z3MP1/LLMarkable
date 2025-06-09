@@ -12,6 +12,7 @@ from docling_core.transforms.chunker.base import BaseChunk
 from docling_core.transforms.chunker.hierarchical_chunker import HierarchicalChunker
 from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
 from docling_core.types.doc.document import DoclingDocument
+
 from src.config import Config
 from src.serializers import LLMarkableSerializerProvider
 
@@ -93,7 +94,7 @@ class HTMLPipeline(BasePipeline):
                 self.console.print(f"  -> HybridChunker produced {len(chunks)} chunks")
             return chunks
 
-    def process(self, file_path: Path) -> list[dict[str, Any]]:
+    def process(self, file_path: Path) -> list[dict[str, Any]]:  # noqa: C901 - complex but readable
         """
         Process HTML file and return structured chunks using optimized Docling chunking.
 
@@ -190,10 +191,9 @@ class HTMLPipeline(BasePipeline):
         input_path: Path,
     ) -> list[dict[str, Any]]:
         """Process HTML chunks using shared base implementation."""
-
         return self._process_chunks_with_metadata(
             chunks=chunks,
             input_path=input_path,
-            file_type='html',
-            processing_pipeline='html_docling_optimized',
+            file_type="html",
+            processing_pipeline="html_docling_optimized",
         )

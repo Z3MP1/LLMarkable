@@ -15,6 +15,7 @@ from docling_core.transforms.chunker.base import BaseChunk
 from docling_core.transforms.chunker.hierarchical_chunker import HierarchicalChunker
 from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
 from docling_core.types.doc.document import DoclingDocument
+
 from src.config import Config
 from src.serializers import TableOptimizedSerializerProvider
 
@@ -165,12 +166,11 @@ class DocxPipeline(BasePipeline):
         input_path: Path,
     ) -> list[dict[str, Any]]:
         """Process DOCX chunks using shared base implementation."""
-
         return self._process_chunks_with_metadata(
             chunks=chunks,
             input_path=input_path,
-            file_type='docx',
-            processing_pipeline='docx_docling',
+            file_type="docx",
+            processing_pipeline="docx_docling",
         )
 
     def supports_file(self, file_path: Path) -> bool:

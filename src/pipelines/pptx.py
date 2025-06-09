@@ -13,6 +13,7 @@ from docling_core.transforms.chunker.base import BaseChunk
 from docling_core.transforms.chunker.hierarchical_chunker import HierarchicalChunker
 from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
 from docling_core.types.doc.document import DoclingDocument
+
 from src.config import Config
 
 from .base import BasePipeline
@@ -163,12 +164,11 @@ class PPTXPipeline(BasePipeline):
         input_path: Path,
     ) -> list[dict[str, Any]]:
         """Process PPTX chunks using shared base implementation."""
-
         return self._process_chunks_with_metadata(
             chunks=chunks,
             input_path=input_path,
-            file_type='pptx',
-            processing_pipeline='pptx_docling',
+            file_type="pptx",
+            processing_pipeline="pptx_docling",
         )
 
     def supports_file(self, file_path: Path) -> bool:
