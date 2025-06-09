@@ -19,6 +19,7 @@ dev = [
     "mypy>=1.16.0",
     "pytest>=8.4.0",
     "pytest-cov>=6.1.1",
+    "ruff>=0.11.13",
     "types-pyyaml>=6.0.12.20250516",
 ]
 
@@ -64,5 +65,5 @@ strict = true
 # Allow some flexibility for complex third-party library interactions
 warn_return_any = false
 # Ignore missing imports for some third-party libraries that may not have complete type stubs
-ignore_missing_imports = true
+ignore_missing_imports = false
 

@@ -32,18 +32,107 @@ class ImagePipeline(BasePipeline):
         # Get tokenizer using the utils function
         self.tokenizer = get_tokenizer(config)
 
-        # Initialize chunkers with correct API
+        # Initialize chunkers with optimized configuration following Docling best practices
+        from src.serializers import ImageOptimizedSerializerProvider
+
+        # Use image-optimized serializer for image documents
+        serializer_provider = ImageOptimizedSerializerProvider()
+
         self.hybrid_chunker = HybridChunker(
             tokenizer=self.tokenizer,
+            merge_peers=True,  # Explicitly enable peer merging for better coherence
+            serializer_provider=serializer_provider,  # Optimized for image-heavy documents
         )
 
         self.hierarchical_chunker = HierarchicalChunker()
 
-        # Initialize Docling converter for image processing
-        self.converter = DocumentConverter()
+        # Initialize Docling converter for image processing with advanced OCR configuration
+        from docling.datamodel.pipeline_options import PdfPipelineOptions
+
+        # Configure OCR options based on config settings
+        pipeline_options = PdfPipelineOptions()
+        pipeline_options.do_ocr = True
+
+        # Configure OCR language options
+        if config.ocr_languages:
+            pipeline_options.ocr_options.lang = config.ocr_languages
+            if config.verbose:
+                self.console.print(f"  -> OCR languages: {config.ocr_languages}")
+        else:
+            # Default to English for images unless specified
+            pipeline_options.ocr_options.lang = ["en"]
+            if config.verbose:
+                self.console.print("  -> OCR language: English (default)")
+
+        # Configure advanced OCR options
+        if hasattr(pipeline_options.ocr_options, "force_full_page_ocr"):
+            pipeline_options.ocr_options.force_full_page_ocr = config.image_force_full_page_ocr
+
+        if hasattr(pipeline_options.ocr_options, "use_gpu"):
+            pipeline_options.ocr_options.use_gpu = config.image_use_gpu
+            if config.verbose and config.image_use_gpu:
+                self.console.print("  -> GPU acceleration enabled for OCR")
+
+        # Configure VLM-based enrichments (picture description/classification) by default
+        if (
+            config.enable_picture_description
+            or config.use_granite_vision
+            or config.use_smolvlm
+            or config.vision_model_repo_id
+        ):
+            pipeline_options.do_picture_description = True
+            pipeline_options.generate_picture_images = True
+            pipeline_options.images_scale = config.vision_model_scale
+
+            # Configure vision model options
+            if config.use_granite_vision:
+                from docling.datamodel.pipeline_options import granite_picture_description
+
+                pipeline_options.picture_description_options = granite_picture_description
+                if config.verbose:
+                    self.console.print("  -> Using Granite vision model for picture description")
+            elif config.use_smolvlm:
+                from docling.datamodel.pipeline_options import smolvlm_picture_description
+
+                pipeline_options.picture_description_options = smolvlm_picture_description
+                if config.verbose:
+                    self.console.print("  -> Using SmolVLM model for picture description")
+            elif config.vision_model_repo_id:
+                from docling.datamodel.pipeline_options import PictureDescriptionVlmOptions
+
+                pipeline_options.picture_description_options = PictureDescriptionVlmOptions(
+                    repo_id=config.vision_model_repo_id,
+                    prompt=config.vision_model_prompt,
+                )
+                if config.verbose:
+                    self.console.print(f"  -> Using custom vision model: {config.vision_model_repo_id}")
+            elif config.verbose:
+                self.console.print("  -> Picture description enrichment enabled (default model)")
+
+        # Always enable picture classification unless explicitly disabled
+        if config.enable_picture_classification:
+            pipeline_options.do_picture_classification = True
+            pipeline_options.generate_picture_images = True
+            pipeline_options.images_scale = config.vision_model_scale
+            if config.verbose:
+                self.console.print("  -> Picture classification enrichment enabled (default)")
+
+        # Initialize converter with OCR configuration
+        from docling.datamodel.base_models import InputFormat
+        from docling.document_converter import PdfFormatOption
+
+        self.converter = DocumentConverter(
+            format_options={
+                InputFormat.IMAGE: PdfFormatOption(pipeline_options=pipeline_options),
+            },
+        )
 
         if config.verbose:
-            self.console.print("✅ Image pipeline initialized with Docling OCR")
+            self.console.print("✅ Image pipeline initialized with advanced Docling OCR")
+            self.console.print(f"  -> OCR engine: {config.image_ocr_engine}")
+            self.console.print(f"  -> Confidence threshold: {config.image_min_text_confidence}")
+            if config.image_force_full_page_ocr:
+                self.console.print("  -> Full page OCR enabled")
 
     def process(self, input_path: Path) -> list[dict[str, Any]]:
         """
@@ -177,17 +266,29 @@ class ImagePipeline(BasePipeline):
             # Extract text content
             content = chunk.text
 
+            # Apply OCR confidence filtering if available
+            ocr_confidence = None
+            if hasattr(chunk.meta, "ocr_confidence"):
+                ocr_confidence = chunk.meta.ocr_confidence
+                if ocr_confidence < self.config.image_min_text_confidence:
+                    if self.config.verbose:
+                        msg = f"Skipping chunk {i} (OCR confidence {ocr_confidence:.2f} below threshold {self.config.image_min_text_confidence})"
+                        self.console.print(f"  -> {msg}")
+                    continue
+
             # Apply content filtering
             if not is_chunk_useful(content, self.config):
                 if self.config.verbose:
                     self.console.print(f"  -> Skipping chunk {i} (insufficient content)")
                 continue
 
-            # Create chunk metadata
+            # Create enhanced chunk metadata with OCR information
             chunk_metadata = {
                 **base_metadata,
                 "chunk_id": i,
                 "token_count": self.tokenizer.count_tokens(content),
+                "ocr_confidence": ocr_confidence,
+                "ocr_engine": self.config.image_ocr_engine,
                 "chunk_metadata": chunk.meta.export_json_dict() if hasattr(chunk.meta, "export_json_dict") else {},
             }
 

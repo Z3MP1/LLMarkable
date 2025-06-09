@@ -43,6 +43,12 @@ class CLIOptions:
     preserve_images: bool = False
     verbose: bool = False
     individual_chunks: bool = False
+    enable_code_enrichment: bool = False
+    enable_formula_enrichment: bool = False
+    enable_picture_description: bool = False
+    use_granite_vision: bool = False
+    pdf_backend: str | None = None
+    artifacts_path: str | None = None
 
 
 def version_callback(value: bool) -> None:
@@ -164,6 +170,12 @@ def _create_config_from_options(options: CLIOptions) -> Config:
     config.verbose = options.verbose
     config.log_level = "DEBUG" if options.verbose else "INFO"
     config.individual_chunks = options.individual_chunks
+    config.enable_code_enrichment = options.enable_code_enrichment
+    config.enable_formula_enrichment = options.enable_formula_enrichment
+    config.enable_picture_description = options.enable_picture_description
+    config.use_granite_vision = options.use_granite_vision
+    config.pdf_backend = options.pdf_backend
+    config.artifacts_path = options.artifacts_path
 
     return config
 
@@ -325,6 +337,48 @@ def convert(  # noqa: PLR0913
             help="Save chunks as individual files vs single consolidated file (default: consolidated)",
         ),
     ] = False,
+    enable_code_enrichment: Annotated[
+        bool,
+        typer.Option(
+            "--enable-code-enrichment/--no-code-enrichment",
+            help="Enable code block detection and enrichment (default: disabled)",
+        ),
+    ] = False,
+    enable_formula_enrichment: Annotated[
+        bool,
+        typer.Option(
+            "--enable-formula-enrichment/--no-formula-enrichment",
+            help="Enable formula detection and LaTeX extraction (default: disabled)",
+        ),
+    ] = False,
+    enable_picture_description: Annotated[
+        bool,
+        typer.Option(
+            "--enable-picture-description/--no-picture-description",
+            help="Enable picture description via vision models (default: disabled)",
+        ),
+    ] = False,
+    use_granite_vision: Annotated[
+        bool,
+        typer.Option(
+            "--use-granite-vision/--no-granite-vision",
+            help="Use IBM Granite vision model for picture description (default: disabled)",
+        ),
+    ] = False,
+    pdf_backend: Annotated[
+        str | None,
+        typer.Option(
+            "--pdf-backend",
+            help="PDF backend to use (options: pypdfium2) (default: auto)",
+        ),
+    ] = None,
+    artifacts_path: Annotated[
+        str | None,
+        typer.Option(
+            "--artifacts-path",
+            help="Path to local model artifacts for offline operation",
+        ),
+    ] = None,
     _version: Annotated[
         bool | None,
         typer.Option(
@@ -360,6 +414,12 @@ def convert(  # noqa: PLR0913
         preserve_images=preserve_images,
         verbose=verbose,
         individual_chunks=individual_chunks,
+        enable_code_enrichment=enable_code_enrichment,
+        enable_formula_enrichment=enable_formula_enrichment,
+        enable_picture_description=enable_picture_description,
+        use_granite_vision=use_granite_vision,
+        pdf_backend=pdf_backend,
+        artifacts_path=artifacts_path,
     )
 
     config = _create_config_from_options(options)

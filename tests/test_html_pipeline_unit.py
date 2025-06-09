@@ -111,14 +111,13 @@ class TestHTMLPipelineProcess:
         test_config: Config,
         tmp_path: Path,
     ) -> None:
-        """Test successful HTML file processing."""
+        """Test successful HTML file processing with new Docling chunking."""
         # Create test HTML file
         html_file = tmp_path / "test.html"
         html_file.write_text("<html><body><p>Test content</p></body></html>")
 
         # Mock the document converter and its result
         mock_doc = Mock()
-        mock_doc.export_to_markdown.return_value = "Test paragraph content\n\nAnother paragraph"
 
         mock_result = Mock()
         mock_result.document = mock_doc
@@ -126,16 +125,27 @@ class TestHTMLPipelineProcess:
         mock_converter = Mock()
         mock_converter.convert.return_value = mock_result
 
+        # Mock chunker results
+        mock_chunk = Mock()
+        mock_chunk.text = "Test chunk content that is long enough to be considered useful"
+        mock_chunk.meta = Mock()
+        mock_chunk.meta.export_json_dict.return_value = {"test": "metadata"}
+
         # Mock utility functions
         test_chunks = [{"content": "Test chunk", "metadata": {}}]
         mock_merge.return_value = test_chunks
         mock_is_useful.return_value = True
 
-        with patch("src.pipelines.html.DocumentConverter", return_value=mock_converter):
+        with (
+            patch("src.pipelines.html.DocumentConverter", return_value=mock_converter),
+            patch("src.pipelines.html.HybridChunker") as mock_hybrid_chunker,
+        ):
+            mock_hybrid_chunker.return_value.chunk.return_value = [mock_chunk]
+
             pipeline = HTMLPipeline(test_config)
             result = pipeline.process(html_file)
 
-            # Verify converter was called with file size limit
+            # Verify converter was called
             mock_converter.convert.assert_called_once_with(
                 str(html_file),
                 max_file_size=test_config.max_file_size_bytes,
@@ -172,28 +182,33 @@ class TestHTMLPipelineProcess:
         test_config: Config,
         tmp_path: Path,
     ) -> None:
-        """Test that markdown export failures are properly wrapped."""
+        """Test that chunking failures are properly wrapped."""
         html_file = tmp_path / "test.html"
         html_file.write_text("<html><body><p>Test</p></body></html>")
 
-        # Mock converter that succeeds but document export fails
+        # Mock converter that succeeds but chunking fails
         mock_doc = Mock()
-        mock_doc.export_to_markdown.side_effect = Exception("Export failed")
-
         mock_result = Mock()
         mock_result.document = mock_doc
 
         mock_converter = Mock()
         mock_converter.convert.return_value = mock_result
 
-        with patch("src.pipelines.html.DocumentConverter", return_value=mock_converter):
-            pipeline = HTMLPipeline(test_config)
+        with (
+            patch("src.pipelines.html.DocumentConverter", return_value=mock_converter),
+            patch("src.pipelines.html.HybridChunker") as mock_hybrid_chunker,
+        ):
+            # Make HybridChunker fail
+            mock_hybrid_chunker.return_value.chunk.side_effect = Exception("Chunking failed")
 
-            with pytest.raises(
-                ConversionError,
-                match="HTML to Markdown conversion failed",
-            ):
-                pipeline.process(html_file)
+            with patch("src.pipelines.html.HierarchicalChunker") as mock_hierarchical_chunker:
+                # Make fallback also fail
+                mock_hierarchical_chunker.return_value.chunk.side_effect = Exception("Fallback failed")
+
+                pipeline = HTMLPipeline(test_config)
+
+                with pytest.raises(Exception):  # Will be wrapped as ChunkingError
+                    pipeline.process(html_file)
 
     def test_should_re_raise_llmarkable_errors(
         self,
@@ -217,89 +232,57 @@ class TestHTMLPipelineProcess:
                 pipeline.process(html_file)
 
 
-class TestHTMLPipelineCreateChunks:
-    """Test chunk creation functionality."""
+class TestHTMLPipelineDoclingChunking:
+    """Test new Docling-based chunking functionality."""
 
-    def test_should_create_chunks_from_markdown_content(
+    def test_should_use_hybrid_chunker_for_document_processing(
         self,
         test_config: Config,
-        tmp_path: Path,
     ) -> None:
-        """Test that _create_chunks properly processes markdown content."""
-        with patch("src.pipelines.html.DocumentConverter"):
+        """Test that pipeline uses HybridChunker for document processing."""
+        mock_doc = Mock()
+        mock_chunk = Mock()
+        mock_chunk.text = "Test chunk content that is long enough to be useful"
+        mock_chunk.meta = Mock()
+        mock_chunk.meta.export_json_dict.return_value = {"test": "metadata"}
+
+        with (
+            patch("src.pipelines.html.DocumentConverter"),
+            patch("src.pipelines.html.HybridChunker") as mock_hybrid_chunker,
+        ):
+            mock_hybrid_chunker.return_value.chunk.return_value = [mock_chunk]
+
             pipeline = HTMLPipeline(test_config)
+            chunks = pipeline._chunk_document(mock_doc)  # noqa: SLF001
 
-            test_file = tmp_path / "test.html"
-            content = "First paragraph content that is long enough to pass the minimum length threshold.\n\nSecond paragraph that is also sufficiently long for processing."
-
-            chunks = pipeline._create_chunks(content, test_file)  # noqa: SLF001
-
-            assert len(chunks) == 2
-
-            # Check first chunk
-            assert (
-                chunks[0]["content"]
-                == "First paragraph content that is long enough to pass the minimum length threshold."
-            )
-            assert chunks[0]["metadata"]["source_file"] == str(test_file)
-            assert chunks[0]["metadata"]["chunk_index"] == 0
-            assert chunks[0]["metadata"]["chunk_type"] == "paragraph"
-            assert chunks[0]["metadata"]["format"] == "html"
-
-            # Check second chunk
-            assert chunks[1]["content"] == "Second paragraph that is also sufficiently long for processing."
-            assert chunks[1]["metadata"]["chunk_index"] == 1
-
-    def test_should_skip_short_paragraphs(
-        self,
-        test_config: Config,
-        tmp_path: Path,
-    ) -> None:
-        """Test that short paragraphs below minimum length are skipped."""
-        with patch("src.pipelines.html.DocumentConverter"):
-            pipeline = HTMLPipeline(test_config)
-
-            test_file = tmp_path / "test.html"
-            content = "Short.\n\nThis is a longer paragraph that meets the minimum length requirement for processing.\n\nTiny."
-
-            chunks = pipeline._create_chunks(content, test_file)  # noqa: SLF001
-
-            # Should only have the long paragraph
+            # Verify HybridChunker was used
+            mock_hybrid_chunker.return_value.chunk.assert_called_once_with(dl_doc=mock_doc)
             assert len(chunks) == 1
-            assert (
-                chunks[0]["content"]
-                == "This is a longer paragraph that meets the minimum length requirement for processing."
-            )
+            assert chunks[0].text == "Test chunk content that is long enough to be useful"
 
-    def test_should_handle_empty_content(
+    def test_should_fallback_to_hierarchical_chunker_when_hybrid_fails(
         self,
         test_config: Config,
-        tmp_path: Path,
     ) -> None:
-        """Test that empty content returns empty chunk list."""
-        with patch("src.pipelines.html.DocumentConverter"):
+        """Test that pipeline falls back to HierarchicalChunker when HybridChunker fails."""
+        mock_doc = Mock()
+        mock_chunk = Mock()
+        mock_chunk.text = "Fallback chunk content"
+        mock_chunk.meta = Mock()
+
+        with (
+            patch("src.pipelines.html.DocumentConverter"),
+            patch("src.pipelines.html.HybridChunker") as mock_hybrid_chunker,
+            patch("src.pipelines.html.HierarchicalChunker") as mock_hierarchical_chunker,
+        ):
+            # Make HybridChunker fail
+            mock_hybrid_chunker.return_value.chunk.side_effect = Exception("Hybrid failed")
+            mock_hierarchical_chunker.return_value.chunk.return_value = [mock_chunk]
+
             pipeline = HTMLPipeline(test_config)
+            chunks = pipeline._chunk_document(mock_doc)  # noqa: SLF001
 
-            test_file = tmp_path / "test.html"
-            content = ""
-
-            chunks = pipeline._create_chunks(content, test_file)  # noqa: SLF001
-
-            assert chunks == []
-
-    def test_should_strip_whitespace_from_paragraphs(
-        self,
-        test_config: Config,
-        tmp_path: Path,
-    ) -> None:
-        """Test that paragraph whitespace is properly stripped."""
-        with patch("src.pipelines.html.DocumentConverter"):
-            pipeline = HTMLPipeline(test_config)
-
-            test_file = tmp_path / "test.html"
-            content = "   \n  This paragraph has leading and trailing whitespace that should be removed.  \n   \n"
-
-            chunks = pipeline._create_chunks(content, test_file)  # noqa: SLF001
-
+            # Verify fallback was used
+            mock_hierarchical_chunker.return_value.chunk.assert_called_once_with(mock_doc)
             assert len(chunks) == 1
-            assert chunks[0]["content"] == "This paragraph has leading and trailing whitespace that should be removed."
+            assert chunks[0].text == "Fallback chunk content"

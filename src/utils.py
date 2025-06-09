@@ -31,12 +31,36 @@ class TokenizerCache:
         """Initialize empty tokenizer cache."""
         self._cache: dict[str, HuggingFaceTokenizer] = {}
 
-    def get_tokenizer(self, model_name: str) -> HuggingFaceTokenizer:
-        """Get cached tokenizer instance or create new one."""
-        if model_name not in self._cache:
+    def get_tokenizer(self, model_name: str, max_tokens: int | None = None) -> HuggingFaceTokenizer:
+        """
+        Get cached tokenizer instance or create new one.
+
+        Args:
+            model_name: Name of the tokenizer model
+            max_tokens: Maximum tokens to configure for the tokenizer
+
+        Returns:
+            Configured HuggingFaceTokenizer instance
+
+        """
+        cache_key = f"{model_name}:{max_tokens}"
+
+        if cache_key not in self._cache:
             try:
-                tokenizer = AutoTokenizer.from_pretrained(model_name)
-                self._cache[model_name] = HuggingFaceTokenizer(tokenizer=tokenizer)
+                auto_tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+                # Configure HuggingFaceTokenizer with max_tokens if provided
+                if max_tokens is not None:
+                    hf_tokenizer = HuggingFaceTokenizer(
+                        tokenizer=auto_tokenizer,
+                        max_tokens=max_tokens,
+                    )
+                else:
+                    # Use default behavior (derives max_tokens from tokenizer)
+                    hf_tokenizer = HuggingFaceTokenizer(tokenizer=auto_tokenizer)
+
+                self._cache[cache_key] = hf_tokenizer
+
             except Exception as e:
                 from .exceptions import TokenizerError
 
@@ -46,7 +70,8 @@ class TokenizerCache:
                     model_name=model_name,
                     original_error=e,
                 ) from e
-        return self._cache[model_name]
+
+        return self._cache[cache_key]
 
 
 # Global tokenizer cache instance
@@ -55,18 +80,22 @@ _tokenizer_cache = TokenizerCache()
 
 def get_tokenizer(config: Config) -> HuggingFaceTokenizer:
     """
-    Get tokenizer instance for token counting.
+    Get tokenizer instance for token counting with proper max_tokens configuration.
 
     Args:
-        config: Configuration containing tokenizer model name
+        config: Configuration containing tokenizer model name and chunk_size
 
     Returns:
-        HuggingFaceTokenizer instance for token counting
+        HuggingFaceTokenizer instance for token counting with optimal configuration
 
     """
     # Use a default model that's commonly available for tokenization
     model_name = getattr(config, "tokenizer_model", "BAAI/bge-small-en-v1.5")
-    return _tokenizer_cache.get_tokenizer(model_name)
+
+    # Configure max_tokens to match chunk_size for optimal chunking behavior
+    max_tokens = config.chunk_size
+
+    return _tokenizer_cache.get_tokenizer(model_name, max_tokens=max_tokens)
 
 
 def extract_text_content(chunk: object) -> str:

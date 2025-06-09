@@ -10,6 +10,7 @@ from typing import Any
 
 from docling.datamodel.base_models import InputFormat
 from docling.document_converter import DocumentConverter, WordFormatOption
+from docling.pipeline.simple_pipeline import SimplePipeline
 from docling_core.transforms.chunker.base import BaseChunk
 from docling_core.transforms.chunker.hierarchical_chunker import HierarchicalChunker
 from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
@@ -17,6 +18,7 @@ from docling_core.types.doc.document import DoclingDocument
 from rich.console import Console
 
 from src.config import Config
+from src.serializers import TableOptimizedSerializerProvider
 from src.utils import get_tokenizer, is_chunk_useful, merge_small_trailing_chunks
 
 from .base import BasePipeline
@@ -33,15 +35,22 @@ class DocxPipeline(BasePipeline):
         # Get tokenizer using the utils function
         self.tokenizer = get_tokenizer(config)
 
-        # Initialize chunkers with correct API
+        # Initialize chunkers with optimized configuration following Docling best practices
+        # Use table-optimized serializer for DOCX documents which often contain structured content
+        serializer_provider = TableOptimizedSerializerProvider()
+
         self.hybrid_chunker = HybridChunker(
             tokenizer=self.tokenizer,
+            merge_peers=True,  # Explicitly enable peer merging for better coherence
+            serializer_provider=serializer_provider,  # Optimized for table-heavy documents
         )
 
         self.hierarchical_chunker = HierarchicalChunker()
 
-        # Initialize Docling converter with DOCX options
-        word_format_option = WordFormatOption()
+        # Initialize Docling converter with optimized DOCX options
+        word_format_option = WordFormatOption(
+            pipeline_cls=SimplePipeline,  # Recommended pipeline for office formats
+        )
 
         self.converter = DocumentConverter(
             format_options={
@@ -50,7 +59,8 @@ class DocxPipeline(BasePipeline):
         )
 
         if config.verbose:
-            self.console.print("✅ DOCX pipeline initialized with Docling")
+            self.console.print("✅ DOCX pipeline initialized with optimized WordFormatOption")
+            self.console.print("  -> Using SimplePipeline for office document optimization")
 
     def process(self, input_path: Path) -> list[dict[str, Any]]:
         """

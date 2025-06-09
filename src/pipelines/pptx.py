@@ -8,8 +8,7 @@ and intelligent chunking strategies.
 from pathlib import Path
 from typing import Any
 
-from docling.datamodel.base_models import InputFormat
-from docling.document_converter import DocumentConverter, PowerpointFormatOption
+from docling.document_converter import DocumentConverter
 from docling_core.transforms.chunker.base import BaseChunk
 from docling_core.transforms.chunker.hierarchical_chunker import HierarchicalChunker
 from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
@@ -33,24 +32,33 @@ class PPTXPipeline(BasePipeline):
         # Get tokenizer using the utils function
         self.tokenizer = get_tokenizer(config)
 
-        # Initialize chunkers with correct API
+        # Initialize chunkers with optimized configuration following Docling best practices
+        from src.serializers import LLMarkableSerializerProvider
+
+        # Use optimized serializer for PPTX documents with presentation-specific image placeholders
+        serializer_provider = LLMarkableSerializerProvider(
+            image_placeholder="<!-- Presentation Slide Image: Visual content from slide -->",
+        )
+
         self.hybrid_chunker = HybridChunker(
             tokenizer=self.tokenizer,
+            merge_peers=True,  # Explicitly enable peer merging for better coherence
+            serializer_provider=serializer_provider,  # Optimized for presentation content
         )
 
         self.hierarchical_chunker = HierarchicalChunker()
 
-        # Initialize Docling converter with PPTX options
-        pptx_format_option = PowerpointFormatOption()
+        # Initialize Docling converter with optimized PPTX options
 
-        self.converter = DocumentConverter(
-            format_options={
-                InputFormat.PPTX: pptx_format_option,
-            },
-        )
+        # For PPTX, we use SimplePipeline (recommended for office formats)
+        # Note: PPTX uses the default DocumentConverter configuration with SimplePipeline
+        self.converter = DocumentConverter()
 
         if config.verbose:
-            self.console.print("✅ PPTX pipeline initialized with Docling")
+            self.console.print("✅ PPTX pipeline initialized with optimized configuration")
+            self.console.print("  -> Using SimplePipeline for presentation document optimization")
+
+        # Docling does not support VLM-based enrichments (picture description/classification) for PPTX as of 2025-06.
 
     def process(self, input_path: Path) -> list[dict[str, Any]]:
         """

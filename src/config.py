@@ -70,6 +70,23 @@ class Config:
     image_min_text_confidence: float = 0.7  # Minimum OCR confidence threshold
     image_min_meaningful_chars: int = 10  # Minimum characters for meaningful text
 
+    # Advanced Image OCR Configuration
+    image_ocr_engine: str = "easyocr"  # Options: "easyocr", "tesseract", "rapidocr"
+    image_force_full_page_ocr: bool = False  # Force full page OCR scanning
+    image_use_gpu: bool = False  # Use GPU for OCR processing (if available)
+
+    # Docling v2 Enrichment Features (Advanced PDF/Image processing)
+    enable_picture_description: bool = True  # Enable picture description via vision models (default: True)
+    enable_picture_classification: bool = True  # Enable picture classification via vision models (default: True)
+    enable_code_enrichment: bool = False  # Enable code block detection and enrichment
+    enable_formula_enrichment: bool = False  # Enable formula detection and enrichment
+
+    # OCR Language Configuration
+    ocr_languages: list[str] | None = None  # None = auto-detect, or specify ['en', 'fr', 'de', 'es']
+
+    # Table Processing Optimization
+    enable_table_cell_matching: bool = False  # False = better column separation for merged cells
+
     # Output format
     output_format: str = "markdown"
     include_metadata: bool = True
@@ -78,6 +95,24 @@ class Config:
     # Logging
     log_level: str = "INFO"
     verbose: bool = False
+
+    # Advanced Docling Configuration Options
+    artifacts_path: str | None = None  # Path to local model artifacts for offline operation
+    allow_external_plugins: bool = False  # Enable third-party Docling plugins
+    enable_remote_services: bool = False  # Enable cloud OCR, hosted LLMs, etc.
+
+    # Backend Selection (None = use default)
+    pdf_backend: str | None = None  # Options: "pypdfium2", "dlparse_v1", "dlparse_v2"
+
+    # Advanced Vision Model Configuration
+    vision_model_repo_id: str | None = None  # Custom Hugging Face model for picture description/classification
+    vision_model_prompt: str = "Describe this picture in three to five sentences. Be precise and concise."
+    vision_model_temperature: float = 0.0  # Temperature for vision model generation
+    vision_model_scale: float = 2.0  # Image scaling factor for vision models
+
+    # Pre-defined vision models (shortcuts)
+    use_granite_vision: bool = False  # Use IBM Granite vision model
+    use_smolvlm: bool = False  # Use SmolVLM model
 
     @classmethod
     def default(cls) -> "Config":

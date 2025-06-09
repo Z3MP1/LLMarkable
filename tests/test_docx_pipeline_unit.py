@@ -47,8 +47,8 @@ class TestDocxPipelineInstantiation:
 
         assert hasattr(pipeline, "tokenizer")
         assert pipeline.tokenizer is not None
-        # BGE tokenizer has model-specific max_tokens (512)
-        assert pipeline.tokenizer.max_tokens == 512
+        # Tokenizer max_tokens should now match config.chunk_size (optimization)
+        assert pipeline.tokenizer.max_tokens == test_config.chunk_size
 
     def test_should_configure_docling_converter_properly(
         self,
