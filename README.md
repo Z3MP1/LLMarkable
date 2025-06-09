@@ -23,30 +23,38 @@ The project is organized into a modular package structure:
 
 ```
 llmarkable/
-├── input/                  # Source documents (PDFs, HTML, etc.)
-├── output/                 # Processed markdown files
-├── src/                    # Main application package
+├── input/                          # Source documents (PDFs, HTML, etc.)
+├── output/                         # Processed markdown files
+├── src/                            # Main application package
 │   ├── __init__.py
-│   ├── config.py          # Configuration dataclasses with validation
-│   ├── exceptions.py      # Custom exception hierarchy
+│   ├── config.py                   # Configuration dataclasses with validation
+│   ├── exceptions.py               # Custom exception hierarchy
+│   ├── serializers.py              # Chunking Serializers 
+│   ├── utils.py                    # Chunk utilities and tokenization
 │   ├── pipelines/
 │   │   ├── __init__.py
-│   │   ├── base.py        # Abstract base pipeline
-│   │   ├── factory.py     # Pipeline factory and format detection
-│   │   ├── pdf.py         # PDF processing pipeline
-│   │   └── html.py        # HTML processing pipeline
-│   └── utils.py           # Chunk utilities and tokenization
-├── tests/                  # Comprehensive test suite
-│   ├── conftest.py        # Pytest configuration and fixtures
-│   ├── test_config.py     # Configuration validation tests
-│   ├── test_pdf_pipeline_unit.py  # PDF pipeline unit tests
-│   ├── test_html_pipeline_unit.py # HTML pipeline unit tests
-│   ├── test_chunk_utilities.py    # Utility function tests
-│   ├── test_exceptions.py # Exception handling tests
-│   └── htmlcov/           # Coverage reports (generated)
-├── main.py                 # CLI entry point (using Typer)
-├── pyproject.toml          # Project dependencies and configuration
-└── README.md
+│   │   ├── base.py                 # Abstract base pipeline
+│   │   ├── factory.py              # Pipeline factory and format detection
+│   │   ├── pdf.py                  # PDF processing pipeline
+│   │   └── html.py                 # HTML processing pipeline
+│   └── synthesis/
+│       ├── __init__.py
+│       ├── base.py                 # Abstract base synthesis provider
+│       ├── openai.py               # OpenAI-based synthesis provider
+│       ├── anthropic.py            # Anthropic-based synthesis provider
+│       └── gemini.py               # Gemini-based synthesis provider
+│
+├── tests/                          # Comprehensive test suite
+│   ├── conftest.py                 # Pytest configuration and fixtures
+│   ├── test_config.py              # Configuration validation tests
+│   ├── test_pdf_pipeline_unit.py   # PDF pipeline unit tests
+│   ├── test_html_pipeline_unit.py  # HTML pipeline unit tests
+│   ├── test_chunk_utilities.py     # Utility function tests
+│   ├── test_exceptions.py          # Exception handling tests
+│   └── htmlcov/                    # Coverage reports (generated)
+├── main.py                         # CLI entry point (using Typer)
+├── pyproject.toml                  # Project dependencies and configuration
+└── README.md                       
 ```
 
 ## 4. Installation & Usage

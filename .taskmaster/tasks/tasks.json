@@ -2,87 +2,529 @@
   "tasks": [
     {
       "id": 1,
-      "title": "Optimize LLMarkable Docling Integration",
-      "description": "Comprehensive optimization of all LLMarkable pipelines to leverage latest Docling best practices and features. This task addresses critical gaps in chunking configuration, enrichment features, and serialization patterns to significantly improve document processing quality and consistency across all format pipelines.",
-      "details": "",
-      "testStrategy": "",
-      "status": "done",
-      "dependencies": [],
+      "title": "Create LLM Integration Framework Foundation",
+      "description": "Establish the core synthesis module structure and abstract base classes for LLM provider integration following industry-standard patterns",
+      "details": "Create the synthesis/ directory structure with __init__.py, synthesizer.py, models.py, prompts.py, and validators.py. Implement BaseLLMProvider abstract class with generate() and get_token_count() methods. Set up the foundation for the Abstract Provider Pattern to support multiple LLM providers (Ollama, OpenAI, Anthropic, Google Gemini). Include proper error handling interfaces and async support preparation.",
+      "testStrategy": "Unit tests for abstract base class instantiation, method signature validation, and proper inheritance patterns. Mock provider implementations to verify interface compliance.",
       "priority": "high",
+      "dependencies": [],
+      "status": "pending",
       "subtasks": [
         {
           "id": 1,
-          "title": "Core Chunking Optimization",
-          "description": "Update HybridChunker initialization across all pipelines with proper max_tokens configuration, explicit merge_peers setting, and custom ChunkingSerializerProvider for consistent output formatting. Fix tokenizer cache to handle max_tokens validation and improve chunk processing quality.",
+          "title": "Create `synthesis/providers` directory structure",
+          "description": "Create the directory structure `src/synthesis/providers/` to house individual provider implementations. This keeps the provider-specific logic organized and separate from the core synthesis engine.",
           "details": "",
-          "status": "done",
+          "status": "pending",
           "dependencies": [],
           "parentTaskId": 1
         },
         {
           "id": 2,
-          "title": "PDF Pipeline Enhancement",
-          "description": "Enhance PDF pipeline with advanced Docling features: configure table cell matching (do_cell_matching=False) for better column separation, add enrichment options (picture_description, code_enrichment, formula_enrichment), implement flexible OCR language configuration, and optimize PdfPipelineOptions with latest features.",
+          "title": "Relocate BaseLLMProvider to providers/base.py",
+          "description": "Move the existing `BaseLLMProvider` abstract class from `src/synthesis/base.py` to a new file at `src/synthesis/providers/base.py` to serve as the central interface for all LLM providers.",
           "details": "",
-          "status": "done",
+          "status": "pending",
           "dependencies": [],
           "parentTaskId": 1
         },
         {
           "id": 3,
-          "title": "HTML Pipeline Refactoring",
-          "description": "Replace custom paragraph-based chunking in HTML pipeline with proper Docling HybridChunker/HierarchicalChunker implementation. Remove inconsistent _chunk_document method, implement format-specific options available in Docling v2, and ensure consistent chunking behavior across all pipelines.",
+          "title": "Create NoOpProvider for default behavior",
+          "description": "Create a `NoOpProvider` class in `src/synthesis/providers/noop.py` that inherits from `BaseLLMProvider`. It will serve as the default provider when AI synthesis is disabled, returning the input content without modification.",
           "details": "",
-          "status": "done",
+          "status": "pending",
           "dependencies": [],
           "parentTaskId": 1
         },
         {
           "id": 4,
-          "title": "Office Documents Optimization",
-          "description": "Optimize DOCX and PPTX pipelines with format-specific configuration options. Add proper WordFormatOption and PowerpointFormatOption configuration, improve converter initialization with format-specific settings, and optimize chunking parameters for structured document processing.",
+          "title": "Implement ProviderFactory",
+          "description": "Implement a `ProviderFactory` in a new file `src/synthesis/factory.py`. This factory will be responsible for dynamically selecting and instantiating the correct LLM provider based on the settings in the Config object.",
           "details": "",
-          "status": "done",
+          "status": "pending",
           "dependencies": [],
           "parentTaskId": 1
         },
         {
           "id": 5,
-          "title": "Image Pipeline Enhancement",
-          "description": "Enhance Image pipeline with advanced OCR features: add picture classification capabilities, implement picture description support, improve OCR configuration with flexible language options, add confidence threshold configuration for OCR results, and integrate with modern Docling enrichment features.",
+          "title": "Pre-implementation Validation: Review framework design",
+          "description": "Before implementation, review the planned `BaseLLMProvider` abstraction and `ProviderFactory` design against the technical specifications and patterns outlined in the PRD to ensure they meet requirements.",
           "details": "",
-          "status": "done",
+          "status": "pending",
           "dependencies": [],
           "parentTaskId": 1
         },
         {
           "id": 6,
-          "title": "Configuration and Error Handling",
-          "description": "Update Config class with new Docling v2 parameters for enrichment features (picture_description, code_enrichment, formula_enrichment), implement better error handling for chunker initialization failures, add validation for tokenizer compatibility with chunkers, and improve pipeline configuration management.",
+          "title": "Post-implementation Validation: Write unit tests for ProviderFactory",
+          "description": "After implementation, write unit tests for the `ProviderFactory`. The tests should cover dynamic provider selection, instantiation of all supported providers (including the NoOpProvider), and handling of invalid configurations.",
           "details": "",
-          "status": "done",
-          "dependencies": [],
-          "parentTaskId": 1
-        },
-        {
-          "id": 7,
-          "title": "Output and Serialization",
-          "description": "Implement custom serializer providers for consistent table and image formatting. Add markdown parameter customization for image placeholders, ensure consistent metadata extraction across all pipelines, improve chunk metadata with enrichment information, and implement proper ChunkingSerializerProvider patterns following Docling best practices.",
-          "details": "",
-          "status": "done",
-          "dependencies": [],
-          "parentTaskId": 1
-        },
-        {
-          "id": 8,
-          "title": "Pre and Post Implementation Validation",
-          "description": "Conduct comprehensive validation: Pre-implementation - verify current Docling version compatibility, test existing pipeline outputs as baseline, document current chunking behavior for comparison. Post-implementation - compare chunking quality before/after optimization, verify all enrichment features work correctly, test edge cases and error conditions, validate performance hasn't degraded, update tests to cover new functionality.",
-          "details": "",
-          "status": "done",
+          "status": "pending",
           "dependencies": [],
           "parentTaskId": 1
         }
       ]
+    },
+    {
+      "id": 2,
+      "title": "Implement Ollama Local LLM Provider",
+      "description": "Create the Ollama provider implementation for local LLM deployment with model management and caching capabilities",
+      "details": "Implement OllamaProvider class inheriting from BaseLLMProvider. Add HTTP client integration with ollama API (default: http://localhost:11434). Implement model management (list, pull, run), response streaming, and basic caching. Include connection validation, model availability checks, and proper error handling for network issues. Add token counting approximation for local models.",
+      "testStrategy": "Integration tests with mock Ollama server, unit tests for model management functions, error handling validation for network failures and model unavailability. Test caching mechanisms and token counting accuracy.",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Research Python Ollama Integration Best Practices",
+          "description": "Using the `Context7` and `firecrawl_search` tools, research the best practices for integrating with Ollama in Python. Focus on the `langchain-community` package's Ollama integration, as mentioned in the PRD, and identify the recommended patterns for API interaction and error handling.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 2
+        },
+        {
+          "id": 2,
+          "title": "Create OllamaProvider class structure",
+          "description": "Create the `OllamaProvider` class in a new file at `src/synthesis/providers/ollama.py`. This class should inherit from `BaseLLMProvider` and be initialized with the necessary configuration for connecting to a local Ollama instance.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 2
+        },
+        {
+          "id": 3,
+          "title": "Implement the `generate()` method",
+          "description": "Implement the `generate()` method within the `OllamaProvider` class. This method should handle the construction of the request, making the API call to the Ollama server, and processing the response, including support for streaming. It should be wrapped with our resilience decorator.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 2
+        },
+        {
+          "id": 4,
+          "title": "Implement the `get_token_count()` method",
+          "description": "Implement the `get_token_count()` method for the `OllamaProvider`. Based on research, this might involve using a local tokenizer as an approximation, as Ollama itself may not provide a dedicated token counting endpoint. Document this approximation.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 2
+        },
+        {
+          "id": 5,
+          "title": "Register OllamaProvider in ProviderFactory",
+          "description": "Update the `ProviderFactory` in `src/synthesis/factory.py` to recognize and instantiate the `OllamaProvider`. This will involve adding it to the factory's mapping of provider names to provider classes, enabling dynamic selection.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 2
+        },
+        {
+          "id": 6,
+          "title": "Pre-implementation Validation: Review Ollama implementation plan",
+          "description": "Before implementation, verify that the planned approach for the `OllamaProvider` aligns with the best practices discovered during the research subtask. Ensure the implementation plan correctly uses the `langchain-community` integration and handles potential API differences.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 2
+        },
+        {
+          "id": 7,
+          "title": "Post-implementation Validation: Test OllamaProvider",
+          "description": "After implementation, write comprehensive unit tests for the `OllamaProvider`. Use mocking to simulate API responses from the Ollama server, and test success cases, error handling, and the token counting approximation.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 2
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Develop Content Synthesis Engine",
+      "description": "Create the core ContentSynthesizer class using LangChain LCEL patterns for chainable content enhancement operations",
+      "details": "Implement ContentSynthesizer class with LangChain LCEL chain composition (ChatPromptTemplate | provider | StrOutputParser). Create synthesis methods for chunk enhancement while preserving document structure. Implement refinement levels (light, moderate, aggressive) with corresponding prompt templates. Add quality validation to ensure factual accuracy preservation and implement fallback mechanisms for synthesis failures.",
+      "testStrategy": "Unit tests for chain composition, integration tests with mock LLM responses, quality preservation validation through before/after content comparison, and refinement level effectiveness testing.",
+      "priority": "high",
+      "dependencies": [
+        1,
+        2
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create the ContentSynthesizer class structure",
+          "description": "Create the main `ContentSynthesizer` class in a new file, `src/synthesis/engine.py`. This class will be initialized with an LLM provider instance (obtained from the factory) and will serve as the main entry point for all content synthesis operations.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 3
+        },
+        {
+          "id": 2,
+          "title": "Implement the `refine_chunk()` method",
+          "description": "Implement the primary `refine_chunk()` method in the `ContentSynthesizer`. This method will take a content chunk and synthesis options (from the Config) as input, construct the appropriate prompt, and use the LLM provider to generate the refined content.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 3
+        },
+        {
+          "id": 3,
+          "title": "Integrate PromptManager into ContentSynthesizer",
+          "description": "Integrate the `PromptManager` (from Task 4) into the `ContentSynthesizer`. The `refine_chunk()` method should use the `PromptManager` to dynamically select and format the correct prompt based on the document type and desired synthesis operation.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 3
+        },
+        {
+          "id": 4,
+          "title": "Pre-implementation Validation: Review ContentSynthesizer design",
+          "description": "Before implementation, review the design of the `ContentSynthesizer` to ensure it follows a clean, single-responsibility principle. It should orchestrate the synthesis process, not get bogged down in the details of prompt management or provider communication.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 3
+        },
+        {
+          "id": 5,
+          "title": "Post-implementation Validation: Test ContentSynthesizer",
+          "description": "After implementation, write unit tests for the `ContentSynthesizer`. Use a mocked LLM provider and a mocked `PromptManager` to verify that the synthesizer correctly coordinates the synthesis process and handles various inputs and configurations.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 3
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Create Prompt Engineering Framework",
+      "description": "Develop format-specific prompt templates and engineering system for optimal content synthesis across different document types",
+      "details": "Create PromptTemplateManager with format-specific templates for PDF, HTML, DOCX, PPTX, and Image content. Implement refinement-level specific prompts (light: grammar/clarity, moderate: structure improvement, aggressive: comprehensive rewriting). Add context-aware prompting using document metadata and chunk position. Include prompt validation and A/B testing framework for continuous improvement.",
+      "testStrategy": "Template rendering tests, format-specific prompt validation, refinement level effectiveness measurement, and prompt injection security testing.",
+      "priority": "medium",
+      "dependencies": [
+        3
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create prompt template directory structure",
+          "description": "Create a new directory at `src/synthesis/prompts/` to store all prompt templates. Inside, create subdirectories for each document format we support (e.g., `pdf/`, `html/`, `markdown/`), ensuring a scalable structure.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 4
+        },
+        {
+          "id": 2,
+          "title": "Develop base prompt templates",
+          "description": "Develop a set of base prompt templates for common synthesis tasks, such as 'summarize', 'reformat', and 'correct_grammar'. Store these as `.txt` files in the new `prompts` directory, using a clear and consistent naming convention.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 4
+        },
+        {
+          "id": 3,
+          "title": "Create the PromptManager class",
+          "description": "Create the `PromptManager` class in a new file, `src/synthesis/prompt_manager.py`. This class will be responsible for loading prompt templates from the file system, caching them, and providing an interface to retrieve and format them with dynamic data.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 4
+        },
+        {
+          "id": 4,
+          "title": "Pre-implementation Validation: Review prompt framework design",
+          "description": "Before implementation, review the design of the `PromptManager` and the prompt template structure. Ensure the design supports easy addition of new prompts and format-specific overrides, as specified in the PRD.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 4
+        },
+        {
+          "id": 5,
+          "title": "Post-implementation Validation: Test PromptManager",
+          "description": "After implementation, write comprehensive unit tests for the `PromptManager`. Use a temporary directory with mock prompt files to test prompt loading, caching, selection logic, and formatting with placeholder data.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 4
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Extend Configuration System for LLM Parameters",
+      "description": "Enhance the existing Config dataclass with Phase 2 LLM synthesis parameters and provider-specific settings",
+      "details": "Extend Config dataclass with enable_synthesis, llm_provider, llm_model, refinement_level, max_synthesis_tokens, preserve_structure parameters. Add provider-specific settings (API keys, base URLs, timeouts). Implement configuration validation, environment variable support, and configuration file loading. Include error handling configuration (max_retries, base_delay, circuit_breaker settings) based on research findings.",
+      "testStrategy": "Configuration validation tests, environment variable loading verification, provider-specific setting validation, and configuration file parsing tests.",
+      "priority": "medium",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Add provider settings to Config",
+          "description": "Add LLM provider settings to `src/config.py`, including `llm_provider`, `llm_model`, and provider-specific keys/URLs as optional fields.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 5
+        },
+        {
+          "id": 2,
+          "title": "Add synthesis control flags to Config",
+          "description": "Add synthesis control flags like `refinement_level: str`, and `preserve_structure: bool` to the Config dataclass. The `refine: bool` flag already exists.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 5
+        },
+        {
+          "id": 3,
+          "title": "Add network and error handling settings to Config",
+          "description": "Add network and error handling settings from PRD research, such as `max_retries`, `base_delay`, and `circuit_breaker_threshold`, to the Config dataclass.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 5
+        },
+        {
+          "id": 4,
+          "title": "Update Config.validate() for Phase 2 parameters",
+          "description": "Update the `Config.validate()` method in `src/config.py` to include comprehensive checks for all new Phase 2 parameters (provider, synthesis, network).",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 5
+        },
+        {
+          "id": 5,
+          "title": "Pre-implementation Validation: Review new Config against PRD",
+          "description": "Before implementation, cross-reference all new configuration parameters with the 'Phase 2 Architecture Extensions' and 'Technical Implementation' sections of the PRD to ensure complete alignment.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 5
+        },
+        {
+          "id": 6,
+          "title": "Post-implementation Validation: Write unit tests for Config",
+          "description": "After implementation, write comprehensive unit tests for the new validation logic in `Config` to verify that it correctly handles both valid and invalid Phase 2 settings.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 5
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Implement Quality Validation Framework",
+      "description": "Create comprehensive validation system to ensure content accuracy preservation during AI synthesis",
+      "details": "Implement ContentValidator class with factual accuracy checks, structure preservation validation, and information loss detection. Create metrics for readability improvement measurement and content quality scoring. Add validation rules for different refinement levels and implement rollback mechanisms for failed synthesis. Include semantic similarity checking and key information preservation verification.",
+      "testStrategy": "Accuracy preservation tests with known content modifications, structure validation tests, information loss detection verification, and semantic similarity measurement validation.",
+      "priority": "high",
+      "dependencies": [
+        3
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 7,
+      "title": "Enhance CLI Interface with Synthesis Options",
+      "description": "Extend the existing Typer-based CLI with --refine flag and synthesis-related command options",
+      "details": "Add --refine flag to enable synthesis mode, --provider option for LLM provider selection (ollama, openai, anthropic, google), --model option for specific model selection, and --refinement-level option (light, moderate, aggressive). Implement progress indicators for synthesis operations, enhanced error messages for LLM-related failures, and validation for synthesis parameters. Add help text and examples for new options.",
+      "testStrategy": "CLI argument parsing tests, option validation tests, help text verification, and integration tests for synthesis workflow activation.",
+      "priority": "medium",
+      "dependencies": [
+        5
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Add `--refine` flag to CLI",
+          "description": "In `src/main.py`, extend the main `convert` command with a new `--refine` flag. This flag will act as the primary switch to enable or disable the AI synthesis features for a conversion job. The flag already exists in the config.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 7
+        },
+        {
+          "id": 2,
+          "title": "Expose synthesis options as CLI arguments",
+          "description": "Expose the new synthesis-related options from our `Config` dataclass as command-line arguments. This includes `--llm-provider`, `--llm-model`, `--refinement-level`, and other relevant parameters, allowing for fine-grained control from the CLI.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 7
+        },
+        {
+          "id": 3,
+          "title": "Integrate ContentSynthesizer into main application flow",
+          "description": "In `main.py`, modify the main application logic to conditionally invoke the `ContentSynthesizer` after the initial document processing pipelines are complete. This should only happen if the `--refine` flag is active.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 7
+        },
+        {
+          "id": 4,
+          "title": "Pre-implementation Validation: Review CLI changes",
+          "description": "Before implementation, review the planned CLI changes to ensure they are user-friendly and consistent with the existing command structure. Verify that all new options have clear names, help text, and sensible defaults.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 7
+        },
+        {
+          "id": 5,
+          "title": "Post-implementation Validation: Test CLI enhancements",
+          "description": "After implementation, write unit tests for the CLI. Use a test runner like `CliRunner` to simulate command-line invocations with various combinations of the new synthesis flags and options, and verify that the application behaves correctly.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 7
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Implement Error Handling and Circuit Breaker Pattern",
+      "description": "Create robust error handling system with circuit breaker pattern for LLM provider failures and comprehensive retry mechanisms",
+      "details": "Implement CircuitBreaker class with configurable failure thresholds and timeout periods. Create comprehensive error classification (Network, Authentication, Rate Limiting, Input Validation) with specific handling strategies. Add exponential backoff with jitter for rate limiting, provider fallback mechanisms, and graceful degradation. Include error logging and user-friendly error messages for different failure scenarios.",
+      "testStrategy": "Circuit breaker state transition tests, error classification validation, retry mechanism testing with mock failures, and fallback scenario verification.",
+      "priority": "high",
+      "dependencies": [
+        2
+      ],
+      "status": "pending",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Define synthesis-specific exception classes",
+          "description": "In `src/exceptions.py`, define new exception classes that inherit from `LLMarkableError`: `SynthesisError`, `ProviderError`, `ProviderAuthenticationError`, and `RateLimitError` to handle specific failure modes in the synthesis process.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 8
+        },
+        {
+          "id": 2,
+          "title": "Implement Circuit Breaker pattern",
+          "description": "Research and select a lightweight circuit breaker library (e.g., 'pybreaker') or implement a simple one from scratch in a new file, `src/synthesis/circuit_breaker.py`. The implementation should support failure thresholds and reset timeouts.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 8
+        },
+        {
+          "id": 3,
+          "title": "Implement exponential backoff with jitter utility",
+          "description": "In a new `src/synthesis/utils.py` file, implement a utility function for exponential backoff with jitter. This function will be used to intelligently space out retries when API calls to LLM providers fail.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 8
+        },
+        {
+          "id": 4,
+          "title": "Integrate resilience patterns into provider calls",
+          "description": "Integrate the circuit breaker and retry logic into the base LLM provider interaction flow. This could be done via a decorator in `synthesis/utils.py` that wraps the `generate` method calls, applying the resilience patterns consistently across all providers.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 8
+        },
+        {
+          "id": 5,
+          "title": "Pre-implementation Validation: Review resilience patterns",
+          "description": "Before implementation, review the chosen resilience patterns (circuit breaker, exponential backoff) against industry best practices and the research outlined in the PRD to ensure a robust and maintainable design.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 8
+        },
+        {
+          "id": 6,
+          "title": "Post-implementation Validation: Test resilience mechanisms",
+          "description": "After implementation, write comprehensive unit tests for the resilience mechanisms. These tests should simulate failures and verify that the retry logic, backoff strategy, and circuit breaker states (closed, open, half-open) all function correctly.",
+          "details": "",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 8
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Integrate Synthesis Engine with Existing Pipelines",
+      "description": "Connect the content synthesis engine with the existing 5 pipeline types to enable optional AI enhancement",
+      "details": "Modify BasePipeline to support optional synthesis step after chunk generation. Update all 5 pipeline implementations (PDF, HTML, DOCX, PPTX, Image) to integrate synthesis when --refine flag is enabled. Implement pipeline-specific synthesis optimizations and ensure backward compatibility with Phase 1 functionality. Add synthesis metadata to output chunks and maintain existing output format compatibility.",
+      "testStrategy": "Pipeline integration tests for all 5 formats, backward compatibility verification, synthesis metadata validation, and output format consistency tests.",
+      "priority": "medium",
+      "dependencies": [
+        3,
+        7
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 10,
+      "title": "Implement Token Management and Cost Optimization",
+      "description": "Create efficient token counting and cost optimization system for different LLM providers",
+      "details": "Implement provider-specific token counting (tiktoken for OpenAI, approximation for others). Create TokenManager class with request batching, response caching, and context window optimization. Add cost estimation and tracking for cloud providers, token usage reporting, and efficient prompt engineering to minimize token consumption. Include cache management and token budget controls.",
+      "testStrategy": "Token counting accuracy tests across providers, caching mechanism validation, cost estimation verification, and token budget enforcement testing.",
+      "priority": "medium",
+      "dependencies": [
+        2,
+        8
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 11,
+      "title": "Create Comprehensive LLM Integration Tests",
+      "description": "Develop extensive testing suite for LLM integration with mocking, integration tests, and quality validation",
+      "details": "Create mock LLM providers for unit testing, integration tests with real Ollama instances, and end-to-end synthesis workflow tests. Implement quality preservation validation tests, performance benchmarking for synthesis operations, and error scenario testing. Add test fixtures for different document types and synthesis levels, and create automated quality metrics collection.",
+      "testStrategy": "Mock provider testing, integration test validation with local Ollama, quality preservation measurement, performance benchmark verification, and error scenario coverage testing.",
+      "priority": "medium",
+      "dependencies": [
+        6,
+        9
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 12,
+      "title": "Performance Optimization and Documentation",
+      "description": "Optimize synthesis performance for production use and create comprehensive documentation for Phase 2 features",
+      "details": "Implement streaming processing for large documents, optimize memory usage during synthesis, and add performance monitoring. Create comprehensive documentation for LLM integration, synthesis configuration, and troubleshooting guides. Add usage examples, best practices documentation, and migration guide from Phase 1. Include performance benchmarks and optimization recommendations.",
+      "testStrategy": "Performance benchmark validation, memory usage testing, streaming processing verification, documentation accuracy review, and example code validation.",
+      "priority": "low",
+      "dependencies": [
+        10,
+        11
+      ],
+      "status": "pending",
+      "subtasks": []
     }
   ]
 }
