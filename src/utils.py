@@ -7,6 +7,7 @@ HuggingFaceTokenizer for precise token counting.
 """
 
 from dataclasses import dataclass
+from typing import Any
 
 from docling_core.transforms.chunker.tokenizer.huggingface import HuggingFaceTokenizer
 from transformers import AutoTokenizer
@@ -27,7 +28,8 @@ class TokenizerCache:
     """Simple cache for tokenizer instances to improve performance."""
 
     def __init__(self) -> None:
-        self._cache = {}
+        """Initialize empty tokenizer cache."""
+        self._cache: dict[str, HuggingFaceTokenizer] = {}
 
     def get_tokenizer(self, model_name: str) -> HuggingFaceTokenizer:
         """Get cached tokenizer instance or create new one."""
@@ -80,14 +82,15 @@ def extract_text_content(chunk: object) -> str:
     """
     # Check for dictionary-like objects first
     if hasattr(chunk, "get") and callable(chunk.get):
-        return chunk.get("content", "")
+        content = chunk.get("content", "")
+        return str(content)
     # Then check for object attributes
     if hasattr(chunk, "page_content"):
-        return chunk.page_content
+        return str(chunk.page_content)
     if hasattr(chunk, "text"):
-        return chunk.text
+        return str(chunk.text)
     if hasattr(chunk, "content"):
-        return chunk.content
+        return str(chunk.content)
     return str(chunk)
 
 
@@ -136,7 +139,7 @@ def is_chunk_useful(
     return True
 
 
-def merge_chunks(chunk_list: list[object]) -> ChunkData:
+def merge_chunks(chunk_list: list[dict[str, Any]]) -> ChunkData:
     """
     Merge multiple chunks into one consolidated chunk.
 
@@ -165,11 +168,11 @@ def merge_chunks(chunk_list: list[object]) -> ChunkData:
 
 
 def merge_small_trailing_chunks(
-    chunks: list[object],
+    chunks: list[dict[str, Any]],
     config: Config,
     tokenizer: HuggingFaceTokenizer | None = None,
     verbose: bool = False,
-) -> list[object]:
+) -> list[dict[str, Any]]:
     """
     Merge small chunks at the end of documents, especially source lists and references.
 
@@ -193,8 +196,8 @@ def merge_small_trailing_chunks(
     if tokenizer is None:
         tokenizer = get_tokenizer(config)
 
-    merged_chunks = []
-    trailing_small_chunks = []
+    merged_chunks: list[dict[str, Any]] = []
+    trailing_small_chunks: list[dict[str, Any]] = []
 
     # Identify trailing small chunks
     for i, chunk in enumerate(chunks):
@@ -204,19 +207,21 @@ def merge_small_trailing_chunks(
         # Check if this chunk is small and at the end
         remaining_chunks = chunks[i + 1 :]
         remaining_small = all(
-            tokenizer.count_tokens(extract_text_content(c)) < config.min_tokens
-            for c in remaining_chunks
+            tokenizer.count_tokens(extract_text_content(c)) < config.min_tokens for c in remaining_chunks
         )
 
         # If this is a small chunk and all remaining chunks are small, start collecting for merge
-        if token_count < config.min_tokens and (
-            remaining_small or not remaining_chunks
-        ):
+        if token_count < config.min_tokens and (remaining_small or not remaining_chunks):
             trailing_small_chunks.append(chunk)
         elif trailing_small_chunks:
             # If we were collecting small chunks but hit a large one, merge the collected ones
             if len(trailing_small_chunks) > 1:
-                merged_chunk = merge_chunks(trailing_small_chunks)
+                merged_chunk_data = merge_chunks(trailing_small_chunks)
+                # Convert ChunkData back to dict format
+                merged_chunk = {
+                    "content": merged_chunk_data.text,
+                    "metadata": {"source": "merged", "chunk_count": len(trailing_small_chunks)},
+                }
                 merged_chunks.append(merged_chunk)
             else:
                 merged_chunks.extend(trailing_small_chunks)
@@ -228,25 +233,33 @@ def merge_small_trailing_chunks(
     # Handle any remaining small chunks at the very end
     if trailing_small_chunks:
         if len(trailing_small_chunks) > 1:
-            merged_chunk = merge_chunks(trailing_small_chunks)
+            merged_chunk_data = merge_chunks(trailing_small_chunks)
+            # Convert ChunkData back to dict format
+            merged_chunk = {
+                "content": merged_chunk_data.text,
+                "metadata": {"source": "merged", "chunk_count": len(trailing_small_chunks)},
+            }
             merged_chunks.append(merged_chunk)
         else:
             merged_chunks.extend(trailing_small_chunks)
 
     # Print merge information if verbose
     if verbose and len(merged_chunks) < len(chunks):
+        from rich.console import Console
+
+        console = Console()
         merge_count = len(chunks) - len(merged_chunks)
-        print(f"Merged {merge_count} small trailing chunks")
+        console.print(f"Merged {merge_count} small trailing chunks")
 
     return merged_chunks
 
 
 def filter_useful_chunks(
-    chunks: list[object],
+    chunks: list[dict[str, Any]],
     config: Config,
     tokenizer: HuggingFaceTokenizer | None = None,
     verbose: bool = False,
-) -> list[object]:
+) -> list[dict[str, Any]]:
     """
     Filter chunks to keep only useful ones based on content quality and token count.
 
@@ -278,6 +291,9 @@ def filter_useful_chunks(
 
     # Print filtering information if verbose
     if verbose and filtered_count > 0:
-        print(f"Filtered out {filtered_count} small/unuseful chunks")
+        from rich.console import Console
+
+        console = Console()
+        console.print(f"Filtered out {filtered_count} small/unuseful chunks")
 
     return useful_chunks

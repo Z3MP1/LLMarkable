@@ -1,16 +1,20 @@
 """
-PDF-specific document processing pipeline using Docling.
+PDF document processing pipeline with Docling integration.
 
-Implements optimized PDF to markdown conversion with table structure preservation
-and token-aware chunking strategies.
+Converts PDF files to Markdown chunks using Docling's DocumentConverter
+with optimized table extraction, OCR configuration, and advanced chunking.
 """
 
 from pathlib import Path
 from typing import Any
 
-from docling.chunking import HierarchicalChunker, HybridChunker
 from docling.datamodel.base_models import InputFormat
+from docling.datamodel.pipeline_options import PdfPipelineOptions, TableFormerMode
 from docling.document_converter import DocumentConverter, PdfFormatOption
+from docling_core.transforms.chunker.base import BaseChunk
+from docling_core.transforms.chunker.hierarchical_chunker import HierarchicalChunker
+from docling_core.transforms.chunker.hybrid_chunker import HybridChunker
+from docling_core.types.doc.document import DoclingDocument
 from rich.console import Console
 
 from src.config import Config
@@ -23,210 +27,230 @@ class PDFPipeline(BasePipeline):
     """PDF document processing pipeline with Docling integration."""
 
     def __init__(self, config: Config) -> None:
-        """Initialize PDF pipeline with Docling configuration."""
+        """Initialize PDF pipeline with optimized Docling configuration."""
         super().__init__(config)
         self.console = Console()
-
-        # Get tokenizer using the new utils function
         self.tokenizer = get_tokenizer(config)
 
-        # Configure PDF processing options
-        self.pdf_options = PdfFormatOption(
-            # Enable table structure preservation as per research
-            do_table_structure=config.preserve_tables,
-            # Configure for quality markdown output
-            do_ocr=True,  # Enable OCR for scanned PDFs
-            ocr_config={"lang": ["en"]},  # Primary language
-            # Layout analysis for better structure detection
-            do_cell_matching=True,
+        # Initialize chunkers with correct API
+        self.hybrid_chunker = HybridChunker(
+            tokenizer=self.tokenizer,
         )
 
-        # Initialize Docling converter with PDF options
+        self.hierarchical_chunker = HierarchicalChunker()
+
+        # Initialize Docling converter with optimized PDF options
+        pdf_pipeline_options = PdfPipelineOptions(
+            # Core processing options
+            do_ocr=True,
+            do_table_structure=config.preserve_tables,
+        )
+
+        # Configure advanced table processing if enabled
+        if config.preserve_tables:
+            # Use accurate TableFormer mode for better quality (new in v1.16.0)
+            pdf_pipeline_options.table_structure_options.mode = TableFormerMode.ACCURATE
+
+            # Use predicted text cells for better column separation
+            # This improves quality when multiple columns are erroneously merged
+            pdf_pipeline_options.table_structure_options.do_cell_matching = False
+
+        # Configure OCR language options based on config
+        if hasattr(config, "ocr_languages") and config.ocr_languages:
+            pdf_pipeline_options.ocr_options.lang = config.ocr_languages
+        else:
+            # Default to English and common European languages
+            pdf_pipeline_options.ocr_options.lang = ["en", "fr", "de", "es"]
+
+        pdf_format_option = PdfFormatOption(pipeline_options=pdf_pipeline_options)
+
         self.converter = DocumentConverter(
             format_options={
-                InputFormat.PDF: self.pdf_options,
+                InputFormat.PDF: pdf_format_option,
             },
         )
 
-        # Initialize chunkers with config-driven parameters
-        self.hybrid_chunker = HybridChunker(
-            tokenizer=self.tokenizer,
-            max_tokens=config.chunk_size,
-            merge_peers=True,  # Merge adjacent chunks with same metadata
-        )
-
-        # Fallback chunker for cases where HybridChunker fails
-        self.hierarchical_chunker = HierarchicalChunker()
+        if config.verbose:
+            self.console.print("✅ PDF pipeline initialized with optimized Docling configuration")
+            if config.preserve_tables:
+                self.console.print("  -> Advanced table processing enabled (ACCURATE mode)")
+            self.console.print(f"  -> OCR languages: {pdf_pipeline_options.ocr_options.lang}")
 
     def process(self, input_path: Path) -> list[dict[str, Any]]:
         """
-        Process PDF document and return structured chunks.
+        Process PDF file through optimized Docling conversion and chunking pipeline.
 
         Args:
             input_path: Path to PDF file
 
         Returns:
-            List of chunk dictionaries with content and metadata
+            List of processed chunks with metadata
 
         Raises:
-            FileNotFoundError: If PDF file doesn't exist
-            ValueError: If file is not a supported PDF format
+            FileAccessError: If PDF file cannot be read
+            ConversionError: If PDF conversion fails
+            ChunkingError: If chunking fails
 
         """
-        if not input_path.exists():
-            msg = f"PDF file not found: {input_path}"
-            raise FileNotFoundError(msg)
+        from src.exceptions import ChunkingError, ConversionError
 
-        if not self.supports_file(input_path):
-            msg = f"Unsupported file type: {input_path.suffix}"
-            raise ValueError(msg)
-
-        self.console.print(f"[blue]Processing PDF: {input_path.name}[/blue]")
+        if self.config.verbose:
+            self.console.print(f"🔄 Processing PDF: {input_path.name}")
 
         try:
-            # Convert PDF to DoclingDocument
-            try:
-                result = self.converter.convert(input_path)
-                docling_doc = result.document
+            # Convert PDF using optimized Docling configuration
+            if self.config.verbose:
+                self.console.print("  -> Converting PDF with optimized Docling settings...")
 
-                if self.config.verbose:
-                    self.console.print(
-                        f"  -> Converted to DoclingDocument with {len(docling_doc.texts)} text elements",
-                    )
-            except Exception as e:
-                from src.exceptions import ConversionError
+            result = self.converter.convert(
+                input_path,
+                max_file_size=self.config.max_file_size_bytes,
+                max_num_pages=self.config.max_num_pages,
+            )
+            docling_doc = result.document
 
-                msg = f"PDF conversion failed: {e!s}"
-                raise ConversionError(
-                    msg,
-                    file_path=str(input_path),
-                    conversion_stage="document_parsing",
-                    original_error=e,
-                ) from e
+            if self.config.verbose:
+                self.console.print("  -> ✅ PDF converted successfully")
+                # Note: num_pages() may not have type annotations in docling_core yet
+                pages = docling_doc.num_pages()  # type: ignore[no-untyped-call]
+                self.console.print(f"  -> Document pages: {pages}")
 
-            # Apply chunking strategy with fallback
+        except Exception as err:
+            msg = f"Failed to convert PDF: {err}"
+            raise ConversionError(
+                msg,
+                file_path=str(input_path),
+                conversion_stage="pdf_conversion",
+            ) from err
+
+        try:
+            # Chunk the document using optimized chunking strategy
+            if self.config.verbose:
+                self.console.print("  -> Chunking document with hybrid strategy...")
+
             chunks = self._chunk_document(docling_doc)
 
-            # Convert chunks to structured format
-            structured_chunks = self._chunks_to_structured(chunks, input_path)
+            if self.config.verbose:
+                self.console.print(f"  -> ✅ Generated {len(chunks)} chunks")
 
-            # Apply post-processing based on config
-            if self.config.merge_small_trailing_chunks:
-                structured_chunks = merge_small_trailing_chunks(
-                    structured_chunks,
-                    self.config,
-                )
+        except Exception as err:
+            msg = f"Failed to chunk PDF document: {err}"
+            raise ChunkingError(
+                msg,
+                chunker_type="hybrid_with_hierarchical_fallback",
+            ) from err
 
-            # Filter out non-useful chunks
-            useful_chunks = [
-                chunk
-                for chunk in structured_chunks
-                if is_chunk_useful(chunk, self.config)
-            ]
+        # Process chunks into final format
+        return self._process_chunks(chunks, input_path)
 
-            self.console.print(f"  -> Generated {len(useful_chunks)} useful chunks")
-            return useful_chunks
+    def _chunk_document(self, docling_doc: DoclingDocument) -> list[BaseChunk]:
+        """
+        Chunk PDF document using HybridChunker with HierarchicalChunker fallback.
 
-        except Exception as e:
-            # If it's already one of our custom exceptions, re-raise it
-            from src.exceptions import LLMarkableError
+        Uses optimized chunking strategy with intelligent fallback for robustness.
 
-            if isinstance(e, LLMarkableError):
-                self.console.print(
-                    f"[red]Error processing PDF {input_path.name}: {e!s}[/red]",
-                )
-                raise
+        Args:
+            docling_doc: Docling document object
 
-            # Otherwise, wrap in a ConversionError
-            from src.exceptions import ConversionError
+        Returns:
+            List of BaseChunk objects
 
-            error = ConversionError(
-                f"Unexpected error processing PDF: {e!s}",
-                file_path=str(input_path),
-                conversion_stage="unknown",
-                original_error=e,
-            )
-            self.console.print(
-                f"[red]Error processing PDF {input_path.name}: {error!s}[/red]",
-            )
-            raise error from e
-
-    def _chunk_document(self, docling_doc: object) -> list:
-        """Apply chunking strategy with HybridChunker and hierarchical fallback."""
-        from src.exceptions import ChunkingError
-
-        # Try HybridChunker first (preferred for token-aware chunking)
+        """
         try:
-            chunks = list(self.hybrid_chunker.chunk(docling_doc))
-
-            if self.config.verbose:
-                self.console.print(f"  -> HybridChunker produced {len(chunks)} chunks")
-
-            return chunks
-
-        except (AttributeError, TypeError, ValueError) as hybrid_error:
+            # Try HybridChunker first - optimal for most PDF documents
+            chunks = list(self.hybrid_chunker.chunk(dl_doc=docling_doc))
+        except Exception as err:  # noqa: BLE001
             if self.config.verbose:
                 self.console.print(
-                    f"  -> 🔄 Fallback: HybridChunker failed ({hybrid_error!s}), trying HierarchicalChunker",
+                    f"  -> ⚠️ HybridChunker failed ({err}), falling back to HierarchicalChunker",
                 )
 
-            # Fallback to HierarchicalChunker
             try:
                 chunks = list(self.hierarchical_chunker.chunk(docling_doc))
+            except Exception as fallback_err:
+                from src.exceptions import ChunkingError
 
+                msg = f"Both chunking strategies failed. HybridChunker: {err}, HierarchicalChunker: {fallback_err}"
+                raise ChunkingError(
+                    msg,
+                    chunker_type="fallback_chain",
+                ) from fallback_err
+            else:
                 if self.config.verbose:
                     self.console.print(
                         f"  -> ✅ HierarchicalChunker produced {len(chunks)} chunks",
                     )
-
                 return chunks
+        else:
+            if self.config.verbose:
+                self.console.print(f"  -> HybridChunker produced {len(chunks)} chunks")
+            return chunks
 
-            except Exception as fallback_error:
-                # Both chunkers failed - this is a critical error
-                msg = f"All chunking strategies failed. HybridChunker: {hybrid_error!s}, HierarchicalChunker: {fallback_error!s}"
-                raise ChunkingError(
-                    msg,
-                    chunker_type="fallback_chain",
-                    original_error=fallback_error,
-                ) from fallback_error
-
-    def _chunks_to_structured(
+    def _process_chunks(
         self,
-        chunks: list,
-        file_path: Path,
+        chunks: list[BaseChunk],
+        input_path: Path,
     ) -> list[dict[str, Any]]:
-        """Convert Docling chunks to structured format."""
-        structured_chunks = []
+        """
+        Process raw chunks into final structured format with enhanced metadata.
+
+        Args:
+            chunks: List of BaseChunk objects from chunker
+            input_path: Original file path for metadata
+
+        Returns:
+            List of processed chunks with rich metadata
+
+        """
+        processed_chunks: list[dict[str, Any]] = []
+        base_metadata = {
+            "source_file": input_path.name,
+            "file_type": "pdf",
+            "processing_pipeline": "pdf_docling_optimized",
+            "table_processing": "accurate" if self.config.preserve_tables else "disabled",
+        }
 
         for i, chunk in enumerate(chunks):
-            try:
-                # Extract text content from chunk
-                if hasattr(chunk, "text"):
-                    content = chunk.text
-                elif hasattr(chunk, "content"):
-                    content = chunk.content
-                else:
-                    content = str(chunk)
+            # Extract text content
+            content = chunk.text
 
-                # Basic cleanup
-                content = content.strip()
-                if content:
-                    chunk_dict = {
-                        "content": content,
-                        "metadata": {
-                            "source_file": str(file_path),
-                            "chunk_index": i,
-                            "chunk_type": "text",
-                            "format": "pdf",
-                        },
-                    }
-                    structured_chunks.append(chunk_dict)
-
-            except (AttributeError, TypeError, ValueError) as e:
+            # Apply content filtering with PDF-specific parameters
+            if not is_chunk_useful(content, self.config):
                 if self.config.verbose:
-                    self.console.print(
-                        f"  -> Warning: Failed to convert chunk to structured format: {e!s}",
-                    )
+                    self.console.print(f"  -> Skipping chunk {i} (insufficient content)")
                 continue
 
-        return structured_chunks
+            # Create enhanced chunk metadata
+            chunk_metadata = {
+                **base_metadata,
+                "chunk_id": i,
+                "token_count": self.tokenizer.count_tokens(content),
+                "chunk_metadata": chunk.meta.export_json_dict() if hasattr(chunk.meta, "export_json_dict") else {},
+            }
+
+            processed_chunks.append(
+                {
+                    "content": content,
+                    "metadata": chunk_metadata,
+                },
+            )
+
+        # Apply trailing chunk consolidation with PDF-specific logic
+        if self.config.merge_small_trailing_chunks:
+            processed_chunks = merge_small_trailing_chunks(
+                processed_chunks,
+                self.config,
+                tokenizer=self.tokenizer,
+                verbose=self.config.verbose,
+            )
+
+        if self.config.verbose:
+            self.console.print(f"  -> Final output: {len(processed_chunks)} processed chunks")
+
+        return processed_chunks
+
+    def supports_file(self, file_path: Path) -> bool:
+        """Check if this pipeline supports PDF files."""
+        from .factory import supports_file_extension
+
+        return supports_file_extension(file_path, PDFPipeline)

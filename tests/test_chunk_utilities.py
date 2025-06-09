@@ -103,10 +103,7 @@ class TestChunkFiltering:
     ) -> None:
         """Test chunk filtering with different data types."""
         # Create longer text to ensure it meets token requirements
-        long_text = (
-            "This is a substantial chunk with enough content to meet token requirements. "
-            * 10
-        )
+        long_text = "This is a substantial chunk with enough content to meet token requirements. " * 10
         short_text = "Short"
 
         # Test with string
@@ -127,8 +124,7 @@ class TestChunkFiltering:
             ("   \n\t   ", False),  # Whitespace only
             ("A", False),  # Single character
             (
-                "This is a comprehensive chunk with sufficient content to meet our minimum token requirements. "
-                * 10,
+                "This is a comprehensive chunk with sufficient content to meet our minimum token requirements. " * 10,
                 True,
             ),  # Long enough - repeated to ensure sufficient tokens
         ],
@@ -142,9 +138,7 @@ class TestChunkFiltering:
         """Test chunk filtering with parametrized inputs."""
         chunk = ChunkData(text=text)
         result = is_chunk_useful(chunk, test_config)
-        assert result == expected_useful, (
-            f"Text: '{text[:30]}...' should be {expected_useful}"
-        )
+        assert result == expected_useful, f"Text: '{text[:30]}...' should be {expected_useful}"
 
 
 class TestChunkMerging:
@@ -157,14 +151,16 @@ class TestChunkMerging:
         """Test that small trailing chunks are merged with previous chunks."""
         # Create chunks with some small trailing ones
         chunks = [
-            ChunkData(
-                text="This is a substantial first chunk with plenty of content to analyze and process appropriately.",
-            ),
-            ChunkData(
-                text="This is another substantial chunk that provides good context and meaningful information.",
-            ),
-            ChunkData(text="Short"),  # Should be merged
-            ChunkData(text="Also short"),  # Should also be merged
+            {
+                "content": "This is a substantial first chunk with plenty of content to analyze and process appropriately.",
+                "metadata": {"chunk_id": 0},
+            },
+            {
+                "content": "This is another substantial chunk that provides good context and meaningful information.",
+                "metadata": {"chunk_id": 1},
+            },
+            {"content": "Short", "metadata": {"chunk_id": 2}},  # Should be merged
+            {"content": "Also short", "metadata": {"chunk_id": 3}},  # Should also be merged
         ]
 
         original_count = len(chunks)
@@ -175,7 +171,7 @@ class TestChunkMerging:
 
         # All chunks should have content
         for chunk in merged_chunks:
-            chunk_text = chunk.text if hasattr(chunk, "text") else str(chunk)
+            chunk_text = chunk.get("content", "")
             assert len(chunk_text.strip()) > 0
 
     def test_should_preserve_substantial_chunks_when_merging(
@@ -186,18 +182,21 @@ class TestChunkMerging:
         # Create chunks that are actually substantial enough to not be merged
         # Need to make them long enough to meet the min_tokens requirement
         chunks = [
-            ChunkData(
-                text="This is a substantial first chunk with plenty of content to analyze and process appropriately. "
+            {
+                "content": "This is a substantial first chunk with plenty of content to analyze and process appropriately. "
                 * 20,
-            ),
-            ChunkData(
-                text="This is another substantial chunk that provides good context and meaningful information for analysis. "
+                "metadata": {"chunk_id": 0},
+            },
+            {
+                "content": "This is another substantial chunk that provides good context and meaningful information for analysis. "
                 * 20,
-            ),
-            ChunkData(
-                text="This is a third substantial chunk with comprehensive content that meets all requirements. "
+                "metadata": {"chunk_id": 1},
+            },
+            {
+                "content": "This is a third substantial chunk with comprehensive content that meets all requirements. "
                 * 20,
-            ),
+                "metadata": {"chunk_id": 2},
+            },
         ]
 
         original_count = len(chunks)
@@ -219,7 +218,7 @@ class TestChunkMerging:
         assert result == []
 
         # Single chunk
-        single_chunk = [ChunkData(text="Single chunk")]
+        single_chunk = [{"content": "Single chunk", "metadata": {"chunk_id": 0}}]
         result = merge_small_trailing_chunks(single_chunk, test_config)
         assert len(result) == 1
 

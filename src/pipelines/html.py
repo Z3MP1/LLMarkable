@@ -1,42 +1,61 @@
-"""HTML document processing pipeline."""
+"""
+HTML-specific document processing pipeline using Docling.
+
+Implements HTML to markdown conversion with paragraph-based chunking.
+"""
 
 from pathlib import Path
-from typing import Any, ClassVar
+from typing import Any
 
-from docling.document_converter import DocumentConverter, InputFormat
+from docling.document_converter import DocumentConverter
+from docling_core.transforms.chunker.base import BaseChunk
+from docling_core.types.doc.document import DoclingDocument
+from rich.console import Console
 
 from src.config import Config
-from src.utils import is_chunk_useful, merge_small_trailing_chunks
+from src.utils import get_tokenizer, is_chunk_useful, merge_small_trailing_chunks
 
 from .base import BasePipeline
 
 
 class HTMLPipeline(BasePipeline):
-    """Pipeline for processing HTML documents using Docling."""
-
-    # Multiple format support - HTML genuinely supports multiple extensions
-    supported_extensions: ClassVar[list[str]] = [".html", ".htm"]
-    MIN_PARAGRAPH_LENGTH: int = 50
+    """HTML document processing pipeline with Docling integration."""
 
     def __init__(self, config: Config) -> None:
-        """
-        Initialize HTML pipeline with configuration.
-
-        Args:
-            config: Configuration object containing processing parameters
-
-        """
+        """Initialize HTML pipeline with Docling configuration."""
         super().__init__(config)
-        # Use default Docling settings for HTML - they're already well-optimized
-        self.converter = DocumentConverter(
-            format_options={
-                InputFormat.HTML: None,  # Use default HTML settings
-            },
-        )
+        self.console = Console()
+
+        # Get tokenizer using the new utils function
+        self.tokenizer = get_tokenizer(config)
+
+        # Initialize Docling converter with HTML options
+        self.converter = DocumentConverter()
 
     def supports_file(self, file_path: Path) -> bool:
-        """Override to support multiple HTML extensions."""
-        return file_path.suffix.lower() in self.supported_extensions
+        """Check if this pipeline supports HTML files."""
+        from .factory import supports_file_extension
+
+        return supports_file_extension(file_path, HTMLPipeline)
+
+    def _chunk_document(self, docling_doc: DoclingDocument) -> list[BaseChunk]:  # noqa: ARG002
+        """
+        Chunk HTML document using paragraph-based approach.
+
+        Note: HTML pipeline uses a different approach than other formats.
+        This method is implemented to satisfy the base class interface
+        but the actual chunking is done in the process method.
+
+        Args:
+            docling_doc: Docling document object
+
+        Returns:
+            List of BaseChunk objects (empty for HTML as we use custom chunking)
+
+        """
+        # HTML pipeline uses custom paragraph-based chunking in process()
+        # This method exists to satisfy the abstract base class requirement
+        return []
 
     def process(self, file_path: Path) -> list[dict[str, Any]]:
         """
@@ -64,7 +83,10 @@ class HTMLPipeline(BasePipeline):
         try:
             # Convert HTML document using Docling
             try:
-                result = self.converter.convert(str(file_path))
+                result = self.converter.convert(
+                    str(file_path),
+                    max_file_size=self.config.max_file_size_bytes,
+                )
                 doc = result.document
             except Exception as e:
                 from src.exceptions import ConversionError
@@ -96,9 +118,7 @@ class HTMLPipeline(BasePipeline):
 
             # Apply consolidation and filtering
             chunks = merge_small_trailing_chunks(chunks, self.config)
-            chunks = [chunk for chunk in chunks if is_chunk_useful(chunk, self.config)]
-
-            return chunks
+            return [chunk for chunk in chunks if is_chunk_useful(chunk, self.config)]
 
         except Exception as e:
             # If it's already one of our custom exceptions, re-raise it
@@ -134,7 +154,7 @@ class HTMLPipeline(BasePipeline):
 
         chunks = []
         for i, paragraph in enumerate(paragraphs):
-            if len(paragraph) > self.MIN_PARAGRAPH_LENGTH:  # Skip very short paragraphs
+            if len(paragraph) > self.config.html_min_paragraph_length:  # Skip very short paragraphs
                 chunk = {
                     "content": paragraph,
                     "metadata": {

@@ -68,12 +68,12 @@ def _validate_input_file(input_file: Path, *, verbose: bool = False) -> None:
 
     # Check if it's actually a file (not a directory)
     if not input_file.is_file():
-        error = ValidationError(
+        validation_error = ValidationError(
             f"Path is not a file: {input_file}",
             field_name="input_file",
             field_value=str(input_file),
         )
-        console.print(f"❌ {error}")
+        console.print(f"❌ {validation_error}")
         raise typer.Exit(1)
 
     # Check file size (reasonable limits for processing)
@@ -82,24 +82,24 @@ def _validate_input_file(input_file: Path, *, verbose: bool = False) -> None:
         max_size = 500 * 1024 * 1024  # 500MB limit
 
         if file_size == 0:
-            error = ValidationError(
+            validation_error = ValidationError(
                 f"File is empty: {input_file}",
                 field_name="file_size",
                 field_value=file_size,
             )
-            console.print(f"❌ {error}")
+            console.print(f"❌ {validation_error}")
             console.print("   Empty files cannot be processed")
             raise typer.Exit(1)
 
         if file_size > max_size:
             size_mb = file_size / (1024 * 1024)
             max_mb = max_size / (1024 * 1024)
-            error = ValidationError(
+            validation_error = ValidationError(
                 f"File too large: {size_mb:.1f}MB (max: {max_mb:.0f}MB)",
                 field_name="file_size",
                 field_value=file_size,
             )
-            console.print(f"❌ {error}")
+            console.print(f"❌ {validation_error}")
             console.print("   Consider splitting large files or processing in batches")
             raise typer.Exit(1)
 

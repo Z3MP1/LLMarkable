@@ -22,7 +22,7 @@ from .factory import (
 from .html import HTMLPipeline
 from .image import ImagePipeline
 from .pdf import PDFPipeline
-from .pptx import PptxPipeline
+from .pptx import PPTXPipeline
 
 __all__ = [
     "BasePipeline",
@@ -30,7 +30,7 @@ __all__ = [
     "HTMLPipeline",
     "ImagePipeline",
     "PDFPipeline",
-    "PptxPipeline",
+    "PPTXPipeline",
     "create_pipeline",
     "get_supported_formats",
     "is_supported_format",

@@ -14,7 +14,7 @@ from .docx import DocxPipeline
 from .html import HTMLPipeline
 from .image import ImagePipeline
 from .pdf import PDFPipeline
-from .pptx import PptxPipeline
+from .pptx import PPTXPipeline
 
 # Pipeline registry mapping extensions to pipeline classes
 _PIPELINE_REGISTRY: dict[str, type[BasePipeline]] = {
@@ -22,7 +22,7 @@ _PIPELINE_REGISTRY: dict[str, type[BasePipeline]] = {
     ".html": HTMLPipeline,
     ".htm": HTMLPipeline,
     ".docx": DocxPipeline,
-    ".pptx": PptxPipeline,
+    ".pptx": PPTXPipeline,
     # Image formats
     ".png": ImagePipeline,
     ".jpg": ImagePipeline,
@@ -32,6 +32,36 @@ _PIPELINE_REGISTRY: dict[str, type[BasePipeline]] = {
     ".bmp": ImagePipeline,
     ".gif": ImagePipeline,
 }
+
+
+def get_supported_extensions_for_pipeline(pipeline_class: type[BasePipeline]) -> list[str]:
+    """
+    Get all extensions supported by a specific pipeline class.
+
+    Args:
+        pipeline_class: The pipeline class to check
+
+    Returns:
+        List of file extensions supported by this pipeline
+
+    """
+    return [ext for ext, cls in _PIPELINE_REGISTRY.items() if cls == pipeline_class]
+
+
+def supports_file_extension(file_path: Path, pipeline_class: type[BasePipeline]) -> bool:
+    """
+    Check if a file extension is supported by a specific pipeline class.
+
+    Args:
+        file_path: Path to check
+        pipeline_class: Pipeline class to check against
+
+    Returns:
+        True if the pipeline supports this file extension
+
+    """
+    extension = file_path.suffix.lower()
+    return extension in get_supported_extensions_for_pipeline(pipeline_class)
 
 
 def create_pipeline(file_path: Path, config: Config) -> BasePipeline:
@@ -58,10 +88,7 @@ def create_pipeline(file_path: Path, config: Config) -> BasePipeline:
 
     if file_extension not in _PIPELINE_REGISTRY:
         supported_formats = ", ".join(sorted(_PIPELINE_REGISTRY.keys()))
-        msg = (
-            f"Unsupported file format: {file_extension}. "
-            f"Supported formats: {supported_formats}"
-        )
+        msg = f"Unsupported file format: {file_extension}. Supported formats: {supported_formats}"
         raise ValueError(
             msg,
         )

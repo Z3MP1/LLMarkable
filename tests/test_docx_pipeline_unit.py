@@ -51,17 +51,17 @@ class TestDocxPipelineInstantiation:
         # BGE tokenizer has model-specific max_tokens (512)
         assert pipeline.tokenizer.max_tokens == 512
 
-    def test_should_configure_word_format_option_with_simple_pipeline(
+    def test_should_configure_docling_converter_properly(
         self,
         test_config: Config,
     ) -> None:
-        """Test that WordFormatOption is properly configured with SimplePipeline."""
-        from docling.pipeline.simple_pipeline import SimplePipeline
-
+        """Test that DocumentConverter is properly configured for DOCX processing."""
         pipeline = DocxPipeline(test_config)
 
-        assert hasattr(pipeline, "word_options")
-        assert pipeline.word_options.pipeline_cls == SimplePipeline
+        assert hasattr(pipeline, "converter")
+        assert pipeline.converter is not None
+        # Verify the converter can handle DOCX files
+        assert pipeline.supports_file(Path("test.docx"))
 
 
 class TestDocxPipelineFileSupport:
@@ -137,16 +137,18 @@ class TestDocxPipelineProcessing:
 
             assert isinstance(result, list)
             assert len(result) == 2
-            mock_chunker.chunk.assert_called_once_with(mock_docling_document)
+            mock_chunker.chunk.assert_called_once_with(dl_doc=mock_docling_document)
 
-    def test_should_raise_file_not_found_when_file_does_not_exist(
+    def test_should_raise_conversion_error_when_file_does_not_exist(
         self,
         test_config: Config,
     ) -> None:
         """Test error handling for non-existent files."""
+        from src.exceptions import ConversionError
+
         pipeline = DocxPipeline(test_config)
 
-        with pytest.raises(FileNotFoundError):
+        with pytest.raises(ConversionError):
             pipeline.process(Path("nonexistent.docx"))
 
 

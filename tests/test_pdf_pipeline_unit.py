@@ -140,10 +140,7 @@ class TestPDFPipelineProcessing:
             patch.object(pipeline, "_chunk_document") as mock_chunk,
         ):
             # Setup mock returns with chunks that have sufficient content to pass filtering
-            long_text = (
-                "This is a substantial chunk with enough content to meet token requirements. "
-                * 20
-            )
+            long_text = "This is a substantial chunk with enough content to meet token requirements. " * 20
             mock_chunk.return_value = [
                 Mock(text=long_text),
                 Mock(text=long_text),
@@ -174,7 +171,7 @@ class TestPDFPipelineProcessing:
 
             assert isinstance(result, list)
             assert len(result) == 2
-            mock_chunker.chunk.assert_called_once_with(mock_docling_document)
+            mock_chunker.chunk.assert_called_once_with(dl_doc=mock_docling_document)
 
     def test_should_raise_file_not_found_when_file_does_not_exist(
         self,
@@ -183,7 +180,9 @@ class TestPDFPipelineProcessing:
         """Test error handling for non-existent files."""
         pipeline = PDFPipeline(test_config)
 
-        with pytest.raises(FileNotFoundError):
+        from src.exceptions import ConversionError
+
+        with pytest.raises(ConversionError):
             pipeline.process(Path("nonexistent.pdf"))
 
 

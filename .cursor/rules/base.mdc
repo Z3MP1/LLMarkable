@@ -17,7 +17,7 @@ alwaysApply: true
 
 - **Coding Style**: 
 - Always use types. `ruff` will otherwise mark functions or variables without types as error.
-- Avoid using imports from `typing`. Instead of `Dict` use `dict`. Instead of `List` use `List`. Instead of `Optional` use ` | `.
+- Avoid using imports from `typing`. Instead of `Dict` use `dict`. Instead of `List` use `List`. Instead of `Optional` use ` | `. Instead of `Any` use `object`.
 - Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
 - Do not catch blind exception: `Exception`
 - `open()` should be replaced by `Path.open()`

@@ -12,11 +12,13 @@ from pathlib import Path
 class Config:
     """Configuration settings for document conversion pipeline."""
 
+    # Validation constants
+    MIN_MULTIPLIER: float = 0.1
+    MAX_MULTIPLIER: float = 2.0
+
     # Chunk size settings (token-based, following Docling best practices)
     min_tokens: int = 330  # Balanced between useful chunks and token efficiency
-    chunk_size: int = (
-        2048  # Target chunk size, also used as max_tokens for HybridChunker
-    )
+    chunk_size: int = 2048  # Target chunk size, also used as max_tokens for HybridChunker
     chunk_overlap: int = 100  # Small overlap between chunks to preserve context
 
     # Input/Output directories
@@ -27,6 +29,46 @@ class Config:
     preserve_tables: bool = True
     preserve_images: bool = False
     merge_small_trailing_chunks: bool = True  # Feature we implemented
+
+    # Memory management and file size limits (restored from original implementation)
+    max_file_size_mb: int = 20  # Maximum file size in MB (Docling recommendation: ~20MB)
+    max_num_pages: int = 1000  # Maximum number of pages to process
+    large_document_threshold_mb: int = 10  # Threshold for large document handling
+    large_image_threshold_mb: int = 25  # Threshold for large image handling
+
+    # General processing parameters
+    chunk_batch_size: int = 50  # Number of chunks to process in batch
+    min_content_density: int = 3  # Minimum words per content unit (paragraphs, etc.)
+
+    # PDF-specific parameters
+    pdf_structured_content_token_multiplier: float = 0.75  # Token adjustment for structured content
+    pdf_complex_table_min_rows: int = 10  # Threshold for complex table detection
+    pdf_complex_table_min_cols: int = 5  # Threshold for complex table detection
+
+    # DOCX-specific parameters
+    docx_large_doc_max_tokens: int = 1024  # Max tokens for large documents
+    docx_structured_content_token_multiplier: float = 0.75  # Token adjustment for structured content
+    docx_complex_table_min_rows: int = 10  # Threshold for complex table detection
+    docx_complex_table_min_cols: int = 5  # Threshold for complex table detection
+
+    # PPTX-specific parameters
+    pptx_large_presentation_threshold_mb: int = 15  # Presentations tend to be larger due to media
+    pptx_large_pres_max_tokens: int = 1024  # Max tokens for large presentations
+    pptx_min_slide_content_density: int = 2  # Words per slide element
+    pptx_slide_content_token_multiplier: float = 0.8  # Presentations often have less dense text
+    pptx_max_slide_title_length: int = 100  # Maximum slide title length
+    pptx_high_complexity_text_threshold: int = 500  # High complexity text threshold
+    pptx_high_complexity_media_threshold: int = 10  # High complexity media threshold
+    pptx_low_complexity_text_threshold: int = 100  # Low complexity text threshold
+    pptx_low_complexity_media_threshold: int = 3  # Low complexity media threshold
+    pptx_min_meaningful_word_count: int = 10  # Minimum meaningful word count
+
+    # HTML-specific parameters
+    html_min_paragraph_length: int = 50  # Minimum paragraph length to process
+
+    # Image-specific parameters
+    image_min_text_confidence: float = 0.7  # Minimum OCR confidence threshold
+    image_min_meaningful_chars: int = 10  # Minimum characters for meaningful text
 
     # Output format
     output_format: str = "markdown"
@@ -43,45 +85,90 @@ class Config:
         return cls()
 
     def validate(self) -> bool:
-        """Basic validation of configuration values."""
+        """Validate configuration values."""
+        self._validate_chunk_settings()
+        self._validate_file_limits()
+        self._validate_processing_parameters()
+        self._validate_multipliers()
+        self._validate_confidence_thresholds()
+        return True
+
+    def _validate_chunk_settings(self) -> None:
+        """Validate chunk-related configuration parameters."""
         from .exceptions import ValidationError
 
         if self.min_tokens <= 0:
             msg = "min_tokens must be positive"
-            raise ValidationError(
-                msg,
-                field_name="min_tokens",
-                field_value=self.min_tokens,
-            )
+            raise ValidationError(msg, field_name="min_tokens", field_value=self.min_tokens)
+
         if self.chunk_size <= self.min_tokens:
             msg = f"chunk_size ({self.chunk_size}) must be greater than min_tokens ({self.min_tokens})"
-            raise ValidationError(
-                msg,
-                field_name="chunk_size",
-                field_value=self.chunk_size,
-            )
+            raise ValidationError(msg, field_name="chunk_size", field_value=self.chunk_size)
+
         if self.chunk_overlap < 0:
             msg = "chunk_overlap must be non-negative"
-            raise ValidationError(
-                msg,
-                field_name="chunk_overlap",
-                field_value=self.chunk_overlap,
-            )
+            raise ValidationError(msg, field_name="chunk_overlap", field_value=self.chunk_overlap)
+
         if self.chunk_overlap >= self.chunk_size:
             msg = f"chunk_overlap ({self.chunk_overlap}) must be less than chunk_size ({self.chunk_size})"
-            raise ValidationError(
-                msg,
-                field_name="chunk_overlap",
-                field_value=self.chunk_overlap,
-            )
+            raise ValidationError(msg, field_name="chunk_overlap", field_value=self.chunk_overlap)
+
+    def _validate_file_limits(self) -> None:
+        """Validate file size and limit parameters."""
+        from .exceptions import ValidationError
+
+        for field_name, field_value in [
+            ("max_file_size_mb", self.max_file_size_mb),
+            ("max_num_pages", self.max_num_pages),
+            ("large_document_threshold_mb", self.large_document_threshold_mb),
+            ("large_image_threshold_mb", self.large_image_threshold_mb),
+        ]:
+            if field_value <= 0:
+                msg = f"{field_name} must be positive"
+                raise ValidationError(msg, field_name=field_name, field_value=field_value)
+
         if self.log_level not in ["DEBUG", "INFO", "WARNING", "ERROR"]:
             msg = f"Invalid log_level '{self.log_level}'. Must be one of: DEBUG, INFO, WARNING, ERROR"
+            raise ValidationError(msg, field_name="log_level", field_value=self.log_level)
+
+    def _validate_processing_parameters(self) -> None:
+        """Validate general processing parameters."""
+        from .exceptions import ValidationError
+
+        for field_name, field_value in [
+            ("chunk_batch_size", self.chunk_batch_size),
+            ("min_content_density", self.min_content_density),
+        ]:
+            if field_value <= 0:
+                msg = f"{field_name} must be positive"
+                raise ValidationError(msg, field_name=field_name, field_value=field_value)
+
+    def _validate_multipliers(self) -> None:
+        """Validate token multiplier parameters."""
+        from .exceptions import ValidationError
+
+        multipliers = [
+            ("pdf_structured_content_token_multiplier", self.pdf_structured_content_token_multiplier),
+            ("docx_structured_content_token_multiplier", self.docx_structured_content_token_multiplier),
+            ("pptx_slide_content_token_multiplier", self.pptx_slide_content_token_multiplier),
+        ]
+
+        for multiplier_name, multiplier_value in multipliers:
+            if not self.MIN_MULTIPLIER <= multiplier_value <= self.MAX_MULTIPLIER:
+                msg = f"{multiplier_name} must be between {self.MIN_MULTIPLIER} and {self.MAX_MULTIPLIER}"
+                raise ValidationError(msg, field_name=multiplier_name, field_value=multiplier_value)
+
+    def _validate_confidence_thresholds(self) -> None:
+        """Validate confidence threshold parameters."""
+        from .exceptions import ValidationError
+
+        if not 0.0 <= self.image_min_text_confidence <= 1.0:
+            msg = "image_min_text_confidence must be between 0.0 and 1.0"
             raise ValidationError(
                 msg,
-                field_name="log_level",
-                field_value=self.log_level,
+                field_name="image_min_text_confidence",
+                field_value=self.image_min_text_confidence,
             )
-        return True
 
     @property
     def input_path(self) -> Path:
@@ -92,3 +179,23 @@ class Config:
     def output_path(self) -> Path:
         """Get output directory as Path object."""
         return Path(self.output_dir)
+
+    @property
+    def max_file_size_bytes(self) -> int:
+        """Get maximum file size in bytes for Docling convert() method."""
+        return self.max_file_size_mb * 1024 * 1024
+
+    @property
+    def large_document_threshold_bytes(self) -> int:
+        """Get large document threshold in bytes."""
+        return self.large_document_threshold_mb * 1024 * 1024
+
+    @property
+    def large_image_threshold_bytes(self) -> int:
+        """Get large image threshold in bytes."""
+        return self.large_image_threshold_mb * 1024 * 1024
+
+    @property
+    def pptx_large_presentation_threshold_bytes(self) -> int:
+        """Get large presentation threshold in bytes."""
+        return self.pptx_large_presentation_threshold_mb * 1024 * 1024

@@ -5,7 +5,10 @@ description = "LLMarkable: Transform documents into LLM-friendly, remarkable out
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "anthropic>=0.52.2",
     "docling>=2.36.1",
+    "google>=3.0.0",
+    "openai>=1.84.0",
     "rich>=14.0.0",
     "transformers>=4.52.4",
     "typer>=0.16.0",
@@ -16,30 +19,32 @@ dev = [
     "mypy>=1.16.0",
     "pytest>=8.4.0",
     "pytest-cov>=6.1.1",
+    "types-pyyaml>=6.0.12.20250516",
 ]
 
 [tool.ruff]
-extend = "~/.config/ruff/ruff.toml"
+line-length = 120
 
 [tool.ruff.lint]
-extend-ignore = [
-    "T201",      # print statements not recommended
-    "S101",      # assert statements not recommended
-    "TRY300",    # return statement should be in else 
-    "FBT001",    # booelean type positional argument not recommended
-    "FBT002",    # Boolean default positional argument in function definition
-    "PLR0913",   # Too many arguments in function definition
+select = ["ALL"]
+ignore = [
+    "S101",      # Use of `assert` detected
+    "FBT001",    # Boolean-typed positional argument in function definition
+    "D203",      # 1 blank line required before class docstring (conflicts with D211)
+    "D212",      # Multi-line docstring summary should start at the first line
+    "FBT002",    # Boolean default positional argument in function definition (intentional for utility functions)
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["PLR2004", "PT011", "ARG001", "SIM117", "SLF001"]
+"tests/*" = [
+    "PLR2004",   # Magic value used in comparison, consider replacing `[value]` with a constant variable
+    "TRY300",    # Consider moving this statement to an `else` block
+    "E501",      # Line too long (> line-length)
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
-
-[tool.coverage.report]
-directory = "tests/"
 
 [tool.coverage.html]
 directory = "tests/htmlcov"
@@ -56,3 +61,8 @@ source = ["src"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
+# Allow some flexibility for complex third-party library interactions
+warn_return_any = false
+# Ignore missing imports for some third-party libraries that may not have complete type stubs
+ignore_missing_imports = false
+

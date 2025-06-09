@@ -79,7 +79,7 @@ class TestPipelineFactoryIntegration:
         pptx_file = Path("test.pptx")
 
         with patch("pathlib.Path.exists", return_value=True):
-            with patch("src.pipelines.pptx.PptxPipeline.process") as mock_process:
+            with patch("src.pipelines.pptx.PPTXPipeline.process") as mock_process:
                 mock_process.return_value = [{"content": "pptx chunk"}]
 
                 pipeline = create_pipeline(pptx_file, test_config)

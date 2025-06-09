@@ -27,22 +27,21 @@ class TestHTMLPipelineInstantiation:
             pipeline = HTMLPipeline(test_config)
 
             assert pipeline.config == test_config
-            assert pipeline.MIN_PARAGRAPH_LENGTH == 50
-            assert pipeline.supported_extensions == [".html", ".htm"]
 
-    def test_should_create_document_converter_with_html_format(
+    def test_should_create_document_converter_for_html_processing(
         self,
         test_config: Config,
     ) -> None:
-        """Test that pipeline creates DocumentConverter with correct HTML settings."""
+        """Test that pipeline creates DocumentConverter for HTML processing."""
         with patch("src.pipelines.html.DocumentConverter") as mock_converter:
             HTMLPipeline(test_config)
 
-            # Verify converter was created with HTML format options
+            # Verify converter was created (HTML uses default DocumentConverter)
             mock_converter.assert_called_once()
             call_args = mock_converter.call_args
-            assert "format_options" in call_args.kwargs
-            assert call_args.kwargs["format_options"] is not None
+            # HTML pipeline uses default DocumentConverter without format_options
+            assert call_args.args == ()
+            assert "format_options" not in call_args.kwargs
 
 
 class TestHTMLPipelineSupportsFile:
@@ -119,9 +118,7 @@ class TestHTMLPipelineProcess:
 
         # Mock the document converter and its result
         mock_doc = Mock()
-        mock_doc.export_to_markdown.return_value = (
-            "Test paragraph content\n\nAnother paragraph"
-        )
+        mock_doc.export_to_markdown.return_value = "Test paragraph content\n\nAnother paragraph"
 
         mock_result = Mock()
         mock_result.document = mock_doc
@@ -138,8 +135,11 @@ class TestHTMLPipelineProcess:
             pipeline = HTMLPipeline(test_config)
             result = pipeline.process(html_file)
 
-            # Verify converter was called
-            mock_converter.convert.assert_called_once_with(str(html_file))
+            # Verify converter was called with file size limit
+            mock_converter.convert.assert_called_once_with(
+                str(html_file),
+                max_file_size=test_config.max_file_size_bytes,
+            )
 
             # Verify utility functions were called
             mock_merge.assert_called_once()
@@ -247,10 +247,7 @@ class TestHTMLPipelineCreateChunks:
             assert chunks[0]["metadata"]["format"] == "html"
 
             # Check second chunk
-            assert (
-                chunks[1]["content"]
-                == "Second paragraph that is also sufficiently long for processing."
-            )
+            assert chunks[1]["content"] == "Second paragraph that is also sufficiently long for processing."
             assert chunks[1]["metadata"]["chunk_index"] == 1
 
     def test_should_skip_short_paragraphs(
@@ -305,7 +302,4 @@ class TestHTMLPipelineCreateChunks:
             chunks = pipeline._create_chunks(content, test_file)
 
             assert len(chunks) == 1
-            assert (
-                chunks[0]["content"]
-                == "This paragraph has leading and trailing whitespace that should be removed."
-            )
+            assert chunks[0]["content"] == "This paragraph has leading and trailing whitespace that should be removed."
