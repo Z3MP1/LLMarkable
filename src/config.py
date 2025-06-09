@@ -30,6 +30,9 @@ class Config:
     preserve_images: bool = False
     merge_small_trailing_chunks: bool = True  # Feature we implemented
 
+    # Tokenizer model configuration
+    tokenizer_model: str = "BAAI/bge-small-en-v1.5"
+
     # Memory management and file size limits (restored from original implementation)
     max_file_size_mb: int = 20  # Maximum file size in MB (Docling recommendation: ~20MB)
     max_num_pages: int = 1000  # Maximum number of pages to process
@@ -126,6 +129,7 @@ class Config:
         self._validate_processing_parameters()
         self._validate_multipliers()
         self._validate_confidence_thresholds()
+        self._validate_tokenizer_settings()
         return True
 
     def _validate_chunk_settings(self) -> None:
@@ -203,6 +207,18 @@ class Config:
                 msg,
                 field_name="image_min_text_confidence",
                 field_value=self.image_min_text_confidence,
+            )
+
+    def _validate_tokenizer_settings(self) -> None:
+        """Validate tokenizer model configuration."""
+        from .exceptions import ValidationError
+
+        if not isinstance(self.tokenizer_model, str) or not self.tokenizer_model.strip():
+            msg = "tokenizer_model must be a non-empty string"
+            raise ValidationError(
+                msg,
+                field_name="tokenizer_model",
+                field_value=self.tokenizer_model,
             )
 
     @property

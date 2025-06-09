@@ -89,8 +89,8 @@ def get_tokenizer(config: Config) -> HuggingFaceTokenizer:
         HuggingFaceTokenizer instance for token counting with optimal configuration
 
     """
-    # Use a default model that's commonly available for tokenization
-    model_name = getattr(config, "tokenizer_model", "BAAI/bge-small-en-v1.5")
+    # Use tokenizer model specified in configuration
+    model_name = config.tokenizer_model
 
     # Configure max_tokens to match chunk_size for optimal chunking behavior
     max_tokens = config.chunk_size
