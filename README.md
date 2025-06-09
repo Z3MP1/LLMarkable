@@ -56,7 +56,11 @@ llmarkable/
 This project uses `uv` for package management and requires Python 3.12+.
 
 1.  Clone the repository.
-2.  Install the dependencies:
+2.  Install `uv`:
+    ```bash
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```
+3.  Install the dependencies:
     ```bash
     uv sync
     ```
