@@ -112,7 +112,7 @@ class PDFPipeline(BasePipeline):
             if self.config.verbose:
                 self.console.print("  -> ✅ PDF converted successfully")
                 # Note: num_pages() may not have type annotations in docling_core yet
-                pages = docling_doc.num_pages()  # type: ignore[no-untyped-call]
+                pages = docling_doc.num_pages()
                 self.console.print(f"  -> Document pages: {pages}")
 
         except Exception as err:
