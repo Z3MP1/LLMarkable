@@ -37,3 +37,13 @@ Some tools or environments may require pip and a requirements.txt file. This is 
    ```
 
 > **Note:** The pip/requirements.txt method is less reproducible and may not match the exact environment produced by `uv sync`. Use only if required by your tooling.
+
+---
+
+## Troubleshooting & Compatibility Notes
+
+- If you still encounter problems with environment setup or package installation, experience has shown that running:
+  - `uv pip install [package] --system`
+  - or `pip install [package] --system`
+  can sometimes resolve issues, especially in certain environments (e.g., IDEs, containers, or when using system Python).
+- The `requirements.txt` file is provided **only** for compatibility with such tools and should not be referenced elsewhere in the project or documentation.
