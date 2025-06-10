@@ -1,5 +1,7 @@
-"""Phase 2 LLM providers."""
+"""Synthesis providers."""
 
-from .base import BaseLLMProvider, NoOpProvider
+# The synthesis package exposes the providers subpackage for LLM provider implementations.
 
-__all__ = ["BaseLLMProvider", "NoOpProvider"]
+from . import providers
+
+__all__ = ["providers"]

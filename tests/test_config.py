@@ -9,6 +9,8 @@ import pytest
 
 from src.config import Config
 from src.exceptions import ValidationError
+from src.synthesis.providers.factory import ProviderFactory
+from src.synthesis.providers.noop import NoOpProvider
 
 
 class TestConfigDefaults:
@@ -202,3 +204,147 @@ class TestConfigCustomization:
         )
 
         config.validate()  # Should not raise
+
+
+class TestConfigLLMSynthesisValidation:
+    """Test validation logic for LLM synthesis and provider settings in Config."""
+
+    def test_should_fail_when_refine_true_and_llm_model_missing(self) -> None:
+        """Test validation fails when refine is True and llm_model is missing."""
+        config = Config.default()
+        config.refine = True
+        config.llm_model = None
+        with pytest.raises(ValidationError, match="llm_model must be a non-empty string"):
+            config.validate()
+
+    def test_should_fail_when_refine_true_and_invalid_refinement_level(self) -> None:
+        """Test validation fails when refine is True and refinement_level is invalid."""
+        config = Config.default()
+        config.refine = True
+        config.llm_model = "mistral:7b"
+        config.refinement_level = "extreme"
+        with pytest.raises(ValidationError, match="refinement_level must be one of"):
+            config.validate()
+
+    def test_should_fail_when_refine_true_and_preserve_structure_not_bool(self) -> None:
+        """Test validation fails when preserve_structure is not a boolean."""
+        config = Config.default()
+        config.refine = True
+        config.llm_model = "mistral:7b"
+        config.preserve_structure = "yes"  # type: ignore[assignment]
+        with pytest.raises(ValidationError, match="preserve_structure must be a boolean"):
+            config.validate()
+
+    def test_should_fail_when_refine_true_and_max_retries_negative(self) -> None:
+        """Test validation fails when max_retries is negative."""
+        config = Config.default()
+        config.refine = True
+        config.llm_model = "mistral:7b"
+        config.max_retries = -1
+        with pytest.raises(ValidationError, match="max_retries must be >= 0"):
+            config.validate()
+
+    def test_should_fail_when_refine_true_and_base_delay_zero(self) -> None:
+        """Test validation fails when base_delay is zero."""
+        config = Config.default()
+        config.refine = True
+        config.llm_model = "mistral:7b"
+        config.base_delay = 0.0
+        with pytest.raises(ValidationError, match="base_delay must be > 0"):
+            config.validate()
+
+    def test_should_fail_when_refine_true_and_circuit_breaker_threshold_zero(self) -> None:
+        """Test validation fails when circuit_breaker_threshold is zero."""
+        config = Config.default()
+        config.refine = True
+        config.llm_model = "mistral:7b"
+        config.circuit_breaker_threshold = 0
+        with pytest.raises(ValidationError, match="circuit_breaker_threshold must be > 0"):
+            config.validate()
+
+    def test_should_fail_when_refine_true_and_circuit_breaker_timeout_zero(self) -> None:
+        """Test validation fails when circuit_breaker_timeout is zero."""
+        config = Config.default()
+        config.refine = True
+        config.llm_model = "mistral:7b"
+        config.circuit_breaker_timeout = 0
+        with pytest.raises(ValidationError, match="circuit_breaker_timeout must be > 0"):
+            config.validate()
+
+    def test_should_fail_when_refine_true_and_openai_provider_missing_api_key(self) -> None:
+        """Test validation fails when openai_api_key is missing."""
+        config = Config.default()
+        config.refine = True
+        config.llm_model = "gpt-4"
+        config.llm_provider = "openai"
+        config.openai_api_key = None
+        with pytest.raises(ValidationError, match="openai_api_key must be a non-empty string"):
+            config.validate()
+
+    def test_should_fail_when_refine_true_and_anthropic_provider_missing_api_key(self) -> None:
+        """Test validation fails when anthropic_api_key is missing."""
+        config = Config.default()
+        config.refine = True
+        config.llm_model = "claude-3"
+        config.llm_provider = "anthropic"
+        config.anthropic_api_key = None
+        with pytest.raises(ValidationError, match="anthropic_api_key must be a non-empty string"):
+            config.validate()
+
+    def test_should_fail_when_refine_true_and_google_provider_missing_api_key(self) -> None:
+        """Test validation fails when google_api_key is missing."""
+        config = Config.default()
+        config.refine = True
+        config.llm_model = "gemini-pro"
+        config.llm_provider = "google"
+        config.google_api_key = None
+        with pytest.raises(ValidationError, match="google_api_key must be a non-empty string"):
+            config.validate()
+
+    def test_should_pass_when_refine_true_and_all_settings_valid(self) -> None:
+        """Test validation passes when all synthesis settings are valid."""
+        config = Config.default()
+        config.refine = True
+        config.llm_model = "mistral:7b"
+        config.refinement_level = "moderate"
+        config.preserve_structure = True
+        config.max_retries = 2
+        config.base_delay = 1.0
+        config.circuit_breaker_threshold = 3
+        config.circuit_breaker_timeout = 30
+        config.llm_provider = "ollama"
+        # No API key required for ollama
+        config.validate()
+
+
+class TestProviderFactory:
+    """Test ProviderFactory."""
+
+    def test_should_return_noop_provider_when_refine_false(self) -> None:
+        """Test that the factory returns the NoOpProvider when refine is False."""
+        config = Config.default()
+        config.refine = False
+        provider = ProviderFactory.get_provider(config)
+        assert isinstance(provider, NoOpProvider)
+
+    def test_should_raise_value_error_for_unknown_provider(self) -> None:
+        """Test that the factory raises a ValueError for an unknown provider."""
+        config = Config.default()
+        config.refine = True
+        config.llm_provider = "unknown"
+        with pytest.raises(ValueError, match="Unknown LLM provider"):
+            ProviderFactory.get_provider(config)
+
+    @pytest.mark.parametrize("provider_name", ["openai", "anthropic", "google"])
+    def test_should_raise_not_implemented_for_known_providers(self, provider_name: str) -> None:
+        """Test that the factory raises a NotImplementedError for a known provider."""
+        config = Config.default()
+        config.refine = True
+        config.llm_provider = provider_name
+        expected_msg = (
+            "OpenAIProvider is not yet implemented."
+            if provider_name == "openai"
+            else f"{provider_name.capitalize()}Provider is not yet implemented."
+        )
+        with pytest.raises(NotImplementedError, match=expected_msg):
+            ProviderFactory.get_provider(config)

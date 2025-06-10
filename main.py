@@ -280,7 +280,7 @@ def _process_document(input_file: Path, config: Config, output_path: Path) -> No
         raise typer.Exit(1) from e
 
 
-@app.command()  # type: ignore[misc]
+@app.command()
 def convert(  # noqa: PLR0913
     input_file: Annotated[
         Path,
@@ -458,7 +458,7 @@ def convert(  # noqa: PLR0913
     _process_document(input_file, config, output_path)
 
 
-@app.command()  # type: ignore[misc]
+@app.command()
 def info() -> None:
     """Show information about supported formats and configuration."""
     console.print("🔧 [bold]LLMarkable - Document Converter[/bold]")

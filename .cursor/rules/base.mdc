@@ -44,3 +44,5 @@ alwaysApply: true
 - **Searching the web**: Use `firecrawl_search` MCP Tool over Web search. If `firecrawl_search` returns a bad / not usable response continue using Web search.
 
 - **Looking up in documentation**: Use `Context7` to lookup documentations for different tools and libraries. First use `resolve-library-id` to get the library id for the library / framework and then use `get_library_docs` with the library id and appropiate keyword(s) in the `topic` field.
+
+- **Task Management**: Always pause and wait for user instructions after a full task (including subtasks!) is completed!

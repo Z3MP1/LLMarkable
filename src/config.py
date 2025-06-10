@@ -126,6 +126,21 @@ class Config:
     refine: bool = False  # Enable content refinement (Phase 2 feature)
     llm_provider: str | None = None  # Selected provider name for refinement
 
+    # Phase 2 LLM integration (provider settings)
+    llm_model: str | None = None  # Selected model name for refinement
+    openai_api_key: str | None = None  # OpenAI API key (if using OpenAI provider)
+    anthropic_api_key: str | None = None  # Anthropic API key (if using Anthropic provider)
+    google_api_key: str | None = None  # Google API key (if using Gemini provider)
+    ollama_base_url: str = "http://localhost:11434"  # Ollama server URL (for local LLMs)
+    # Synthesis control flags
+    refinement_level: str = "moderate"  # Synthesis refinement level: light, moderate, aggressive
+    preserve_structure: bool = True  # Preserve document structure during synthesis
+    # Network and error handling settings
+    max_retries: int = 3  # Maximum number of retries for LLM API calls
+    base_delay: float = 1.0  # Base delay (seconds) for exponential backoff
+    circuit_breaker_threshold: int = 5  # Number of failures before opening circuit
+    circuit_breaker_timeout: int = 60  # Timeout (seconds) before circuit breaker resets
+
     @classmethod
     def default(cls) -> "Config":
         """Create a configuration with default values."""
@@ -139,6 +154,7 @@ class Config:
         self._validate_multipliers()
         self._validate_confidence_thresholds()
         self._validate_tokenizer_settings()
+        self._validate_synthesis_settings()
         return True
 
     def _validate_chunk_settings(self) -> None:
@@ -229,6 +245,57 @@ class Config:
                 field_name="tokenizer_model",
                 field_value=self.tokenizer_model,
             )
+
+    def _validate_synthesis_settings(self) -> None:
+        """Validate LLM synthesis and provider-related settings."""
+        from .exceptions import ValidationError
+
+        # Phase 2 LLM parameter validation
+        if self.refine:
+            if not isinstance(self.llm_model, str) or not self.llm_model.strip():
+                msg = "llm_model must be a non-empty string when refine is enabled"
+                raise ValidationError(msg, field_name="llm_model", field_value=self.llm_model)
+            if self.llm_provider == "openai" and (
+                not isinstance(self.openai_api_key, str) or not self.openai_api_key.strip()
+            ):
+                msg = "openai_api_key must be a non-empty string when using OpenAI provider"
+                raise ValidationError(msg, field_name="openai_api_key", field_value=self.openai_api_key)
+            if self.llm_provider == "anthropic" and (
+                not isinstance(self.anthropic_api_key, str) or not self.anthropic_api_key.strip()
+            ):
+                msg = "anthropic_api_key must be a non-empty string when using Anthropic provider"
+                raise ValidationError(msg, field_name="anthropic_api_key", field_value=self.anthropic_api_key)
+            if self.llm_provider == "google" and (
+                not isinstance(self.google_api_key, str) or not self.google_api_key.strip()
+            ):
+                msg = "google_api_key must be a non-empty string when using Google provider"
+                raise ValidationError(msg, field_name="google_api_key", field_value=self.google_api_key)
+            if self.refinement_level not in ["light", "moderate", "aggressive"]:
+                msg = "refinement_level must be one of: light, moderate, aggressive"
+                raise ValidationError(msg, field_name="refinement_level", field_value=self.refinement_level)
+            if not isinstance(self.preserve_structure, bool):
+                msg = "preserve_structure must be a boolean value"
+                raise ValidationError(msg, field_name="preserve_structure", field_value=self.preserve_structure)
+            if self.max_retries < 0:
+                msg = "max_retries must be >= 0"
+                raise ValidationError(msg, field_name="max_retries", field_value=self.max_retries)
+            if self.base_delay <= 0:
+                msg = "base_delay must be > 0"
+                raise ValidationError(msg, field_name="base_delay", field_value=self.base_delay)
+            if self.circuit_breaker_threshold <= 0:
+                msg = "circuit_breaker_threshold must be > 0"
+                raise ValidationError(
+                    msg,
+                    field_name="circuit_breaker_threshold",
+                    field_value=self.circuit_breaker_threshold,
+                )
+            if self.circuit_breaker_timeout <= 0:
+                msg = "circuit_breaker_timeout must be > 0"
+                raise ValidationError(
+                    msg,
+                    field_name="circuit_breaker_timeout",
+                    field_value=self.circuit_breaker_timeout,
+                )
 
     @property
     def input_path(self) -> Path:

@@ -9,46 +9,16 @@ This document outlines the standard operating procedure for using Taskmaster AI 
 
 ## Guiding Principles
 
-- **MCP-First**: We will only use the `taskmaster-ai` MCP tools, not the CLI.
-- **Phased Approach**: We will tackle the project in phases, as outlined in the PRD. We will begin with Phase 1 and generate tasks for Phase 2 later.
-- **Plan, then Execute**: We will use Taskmaster's planning and analysis tools (`parse_prd`, `analyze_project_complexity`, `expand_task`) before starting development to create a clear and detailed implementation plan.
+- **MCP-First**: Only use the `taskmaster-ai` MCP tools, not the CLI.
 - **Validate Continuously**: Implement pre and post-implementation validation checks to ensure quality and prevent over-engineering.
 
----
-
-## The Workflow
 
 ### Important Note on File Paths
 
 **All Taskmaster data files, including the main `tasks.json` file and individual task files (e.g., `task_001.txt`), are located in the `.taskmaster/tasks/` directory. Always ensure that the `file` parameter for all tools points to `.taskmaster/tasks/tasks.json`.**
 
----
 
-### Step 1: Initial Task Generation from PRD
-
-The project structure and configuration are already in place, so we will skip the `initialize_project` step. Our first action is to parse the `PRD.txt` to generate the initial tasks for Phase 1.
-
-**Action:**
-Use the `parse_prd` tool with the following parameters:
-- `input`: `.taskmaster/templates/PRD.txt`
-- `prompt`: "Parse the 'Phase 1: Foundational Refactoring & Optimization' section of this PRD to generate the initial set of development tasks."
-- `output`: `.taskmaster/tasks/tasks.json`
-
-This will create the foundational `tasks.json` file inside the `tasks` directory. Taskmaster will also generate individual task files (e.g., `task_001.txt`) in the same directory.
-
-### Step 2: Task Analysis & Expansion
-
-Raw tasks from the PRD may be too high-level. We will use Taskmaster's analysis capabilities to identify complex tasks and break them down into smaller, concrete subtasks.
-
-**Actions:**
-1.  **Analyze Complexity**: Run `analyze_project_complexity` on the newly created `tasks.json`.
-    - `file`: `.taskmaster/tasks/tasks.json`
-    - `threshold`: Set to **6**. Any task with a complexity score of 6 or higher needs to be broken down.
-    - `output`: `.taskmaster/reports/complexity-report.json`
-2.  **Review Report**: Use `complexity_report` to view the analysis.
-3.  **Expand Tasks**: For each task identified as complex in the report, use the `expand_task` or `expand_all` tool to generate detailed subtasks. Remember to specify the `file` parameter.
-
-### Step 3: Iterative Development Cycle with Validation
+## Iterative Development Cycle with Validation
 
 This is the core loop for development with added validation checkpoints.
 
@@ -74,7 +44,7 @@ After completing each task:
 3. **Extensibility Review**: Confirm solution is extensible without complexity
 4. **Optimization Check**: Verify no premature optimization
 
-### Step 4: Adapting and Evolving the Plan
+## Adapting and Evolving the Plan
 
 Projects evolve. Here's how to handle changes with Taskmaster. All these tools require the `file` parameter to be set correctly.
 

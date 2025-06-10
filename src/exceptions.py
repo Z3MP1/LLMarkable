@@ -182,3 +182,76 @@ class TokenizerError(LLMarkableError):
         """
         super().__init__(message, original_error=original_error)
         self.model_name = model_name
+
+
+class SynthesisError(LLMarkableError):
+    """Raised for general synthesis (LLM) errors."""
+
+    def __init__(self, message: str, *, original_error: Exception | None = None) -> None:
+        """
+        Initialize synthesis error.
+
+        Args:
+            message: Human-readable error message
+            original_error: Optional original exception
+
+        """
+        super().__init__(message, original_error=original_error)
+
+
+class ProviderError(SynthesisError):
+    """Raised for provider-specific errors (e.g., API failures, model not found)."""
+
+    def __init__(self, message: str, *, provider: str | None = None, original_error: Exception | None = None) -> None:
+        """
+        Initialize provider error.
+
+        Args:
+            message: Human-readable error message
+            provider: Name of the provider that failed
+            original_error: Optional original exception
+
+        """
+        super().__init__(message, original_error=original_error)
+        self.provider = provider
+
+
+class ProviderAuthenticationError(ProviderError):
+    """Raised for authentication/authorization failures with LLM providers."""
+
+    def __init__(self, message: str, *, provider: str | None = None, original_error: Exception | None = None) -> None:
+        """
+        Initialize provider authentication error.
+
+        Args:
+            message: Human-readable error message
+            provider: Name of the provider that failed
+            original_error: Optional original exception
+
+        """
+        super().__init__(message, provider=provider, original_error=original_error)
+
+
+class RateLimitError(ProviderError):
+    """Raised when a provider rate limit is encountered."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        provider: str | None = None,
+        retry_after: float | None = None,
+        original_error: Exception | None = None,
+    ) -> None:
+        """
+        Initialize rate limit error.
+
+        Args:
+            message: Human-readable error message
+            provider: Name of the provider that failed
+            retry_after: Time to wait before retrying
+            original_error: Optional original exception
+
+        """
+        super().__init__(message, provider=provider, original_error=original_error)
+        self.retry_after = retry_after

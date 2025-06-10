@@ -18,15 +18,24 @@ dependencies = [
 dev = [
     "mypy>=1.16.0",
     "pytest>=8.4.0",
+    "pytest-asyncio>=1.0.0",
     "pytest-cov>=6.1.1",
     "ruff>=0.11.13",
     "types-pyyaml>=6.0.12.20250516",
 ]
 
-[tool.ruff]
-line-length = 120
+[tool.mypy]
+# Enable strict optional checking, more rigorous type checks
+strict = true
+# Use a cache to speed up repeated runs
+cache_dir = ".mypy_cache"
 
-[tool.ruff.lint]
+exclude = ["tests/*"]
+
+[tool.ruff]
+# Base line length
+line-length = 120
+# Ignore auto-generated files and virtual env
 select = ["ALL"]
 ignore = [
     "S101",      # Use of `assert` detected
@@ -38,14 +47,17 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
-    "PLR2004",   # Magic value used in comparison, consider replacing `[value]` with a constant variable
+    "ARG001",    # Unused function argument: `args` / `kwargs`
     "TRY300",    # Consider moving this statement to an `else` block
+    "TRY003",    # Avoid specifying long messages outside the exception class
     "E501",      # Line too long (> line-length)
+    "EM101",     # Exception must not use a string literal, assign to variable first
+    "PT011",     # Raised Exception too broad, use a more specific exception
+    "PLR2004",   # Magic value used in comparison, consider replacing `[value]` with a constant variable
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = "test_*.py"
 
 [tool.coverage.html]
 directory = "tests/htmlcov"
@@ -53,17 +65,9 @@ directory = "tests/htmlcov"
 [tool.coverage.xml]
 output = "tests/coverage.xml"
 
-[tool.coverage.json]
-output = "tests/coverage.json"
 
-[tool.coverage.run]
-source = ["src"]
 
-[tool.mypy]
-python_version = "3.12"
-strict = true
-# Allow some flexibility for complex third-party library interactions
-warn_return_any = false
-# Ignore missing imports for some third-party libraries that may not have complete type stubs
-ignore_missing_imports = false
+
+
+
 
