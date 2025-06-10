@@ -1,0 +1,8 @@
+Summarize the following PDF section. Rewrite to be concise, well-structured, and engaging. You may reorganize or rephrase as needed, but preserve all key information.
+
+Section:
+```
+{content}
+```
+
+Return only the improved summary in Markdown format. 

@@ -17,7 +17,7 @@
 - **VLM Enrichment:** Picture description/classification enabled by default for PDF/Image, fully configurable
 - **PPTX Pipeline:** All VLM enrichment code removed; Docling does not support as of 2025-06
 - **DRY/SoC Refactor:** Shared logic in `base.py`, format-specific logic preserved
-- **Testing Excellence:** 140+ unit tests, all features and edge cases covered
+- **Testing Excellence:** 150+ unit and integration tests, all features and edge cases covered
 - **Lessons:** Start simple, test early, optimize for real user needs, avoid unnecessary code bloat, always expose advanced options
 
 ---
@@ -58,45 +58,37 @@
 - **CLI:** `--refine` flag, model selection, refinement levels
 - **Quality validation:** Prompt engineering, context preservation, automated checks
 - **Config:** All LLM options exposed in config dataclass
+- **Prompt Engineering Framework:**
+    - Dedicated `PromptManager` class for loading, caching, and formatting prompt templates
+    - Format-specific prompt template directory structure (`src/synthesis/prompts/` with subdirs for PDF, HTML, Markdown, etc.)
+    - Base prompt templates for summarize, reformat, and correct_grammar tasks, with light/moderate/aggressive refinement levels
+    - All prompt engineering code and tests complete and validated
+- **Configuration System Extension:**
+    - `Config` dataclass now includes all LLM synthesis, provider, and error handling parameters (provider selection, model, refinement level, retries, circuit breaker, etc.)
+    - Comprehensive validation and environment variable support
+    - All configuration logic and tests complete and validated
 
-### Research & Design Insights
-- **LangChain LCEL Patterns:** Adopted for chainable LLM operations
-- **Provider-Specific Optimizations:** Leverage unique features (OpenAI streaming, Gemini multimodal, Anthropic rate limiting)
-- **Error Handling:** Comprehensive exception hierarchy, exponential backoff, circuit breaker
-- **Local-First Strategy:** Ollama prioritized for privacy and cost control
-- **Testing:** Mock-based for LLM interactions, performance benchmarking
+### Recent Progress (2025-06)
+- **TokenManager:** Provider-agnostic token counting, batching, caching, and cost estimation implemented and fully tested (OpenAI, Ollama)
+- **Synthesis Engine Integration:** All pipelines now support optional LLM-powered synthesis with format-specific prompt templates and metadata injection
+- **Comprehensive LLM Integration Tests:**
+    - Mock LLM provider for end-to-end pipeline tests
+    - Tests cover chunk refinement, metadata injection, error handling, and performance
+    - All synthesis levels and error scenarios validated
+    - All tests run fast, with no file I/O or network calls
+- **Test Coverage:** 150+ tests, including new integration and e2e tests for LLM synthesis
 
----
+### Next Steps
+- **Complete OpenAIProvider:**
+    - Implement tiktoken-based token counting
+    - Robust error handling (rate limits, API failures, streaming)
+    - Provider factory integration and async support
+    - Comprehensive unit and integration tests
+- **Expand test coverage for new LLM features**
+- **Monitor Docling for new enrichment support (e.g., PPTX)**
+- **Continue to document key decisions and technical insights for future contributors**
 
-## Quality & User Experience Standards
-- **Type Safety:** 100% mypy strict mode compliance
-- **Testing:** Comprehensive, fast, isolated, and mock-based
-- **Documentation:** Clear docstrings, architectural documentation, and config comments
-- **Error Handling:** Robust, informative, and user-friendly
-- **CLI UX:** Rich formatting, progress indicators, and validation
-
----
-
-## Historical Context & Future Guidance
-- **Phase 1:** Exceeded scope, delivered robust, extensible, and well-tested pipelines
-- **Phase 2:** Research-driven LLM integration, local-first, quality preservation
-- **Key Decisions:** Never sacrifice accuracy for enhancement, always expose advanced options, DRY/SoC without loss of functionality
-- **Lessons:** Start simple, test early, optimize for real user needs, avoid unnecessary code bloat
-
----
-
-## Current State & Next Steps
-
-LLMarkable is now:
-- Fully optimized for all supported formats
-- Extensible for new Docling/LLM features
-- Clean, DRY, and future-proofed
-- Ready for advanced AI-powered content synthesis
-
-**Next Steps:**
-- Complete Phase 2 LLM integration and synthesis engine
-- Expand test coverage for new LLM features
-- Monitor Docling for new enrichment support (e.g., PPTX)
-- Continue to document key decisions and technical insights for future contributors
+### Plan Adjustment
+- No major adjustment needed. The current plan is on track: finish OpenAIProvider, then expand to Anthropic/Gemini as needed. Continue to prioritize test coverage and quality validation for all LLM features.
 
 *This log tracks major development decisions and technical progress. All valuable historical and technical information is preserved for future reference. For detailed task history, see project management tools or commit logs.*

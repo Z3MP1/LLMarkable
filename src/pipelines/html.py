@@ -167,7 +167,8 @@ class HTMLPipeline(BasePipeline):
                 ) from e
 
             # Process chunks into final format
-            return self._process_chunks(chunks, file_path)
+            processed_chunks = self._process_chunks(chunks, file_path)
+            return self._maybe_synthesize_chunks(processed_chunks)
 
         except Exception as e:
             # If it's already one of our custom exceptions, re-raise it

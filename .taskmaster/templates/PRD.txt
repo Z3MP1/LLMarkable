@@ -15,11 +15,15 @@ The Document Conversion Pipeline is a Python-based tool that transforms source f
 - **Research-backed parameters**: chunk_size (2048 tokens), min_tokens (330), chunk_overlap (100)
 - **Quality filtering**: Intelligent filtering based on content density and token requirements
 
-## AI-Augmented Content Synthesis 🎯 NEW PHASE 2 FOCUS
-- **LLM Integration**: Local and cloud LLM support for content enhancement
+## AI-Augmented Content Synthesis 🎯 PHASE 2 IN PROGRESS
+- **LLM Integration**: Local and cloud LLM support for content enhancement (Ollama, OpenAI, Anthropic, Gemini)
 - **Content Refinement**: Transform raw chunks into coherent, readable documents
 - **Quality Preservation**: Maintain factual accuracy while improving readability
 - **Configurable Enhancement**: Multiple refinement levels and preservation modes
+- **TokenManager**: Provider-agnostic token counting, batching, caching, and cost estimation (OpenAI, Ollama, etc.)
+- **Comprehensive LLM Integration Tests**: End-to-end tests with mock LLM providers, covering chunk refinement, metadata injection, error handling, and performance
+- **Synthesis Engine Integration**: All pipelines now support optional LLM-powered synthesis with format-specific prompt templates and metadata injection
+- **OpenAIProvider**: Integration in progress (tiktoken-based token counting, robust error handling, async support)
 
 # User Experience  
 ## User Personas
@@ -60,30 +64,38 @@ LLMarkable/
 │   ├── utils.py           # ✅ Chunk utilities and tokenization
 │   ├── exceptions.py      # ✅ Error handling framework
 │   └── main.py            # ✅ CLI interface
-├── tests/                 # ✅ 150 comprehensive tests
+├── synthesis/             # 🎯 PHASE 2: LLM integration framework
+│   ├── engine.py          # Content synthesis engine
+│   ├── token_manager.py   # Provider-agnostic token management
+│   ├── prompt_manager.py  # Prompt templates and engineering
+│   ├── providers/         # LLM provider implementations (OpenAI, Ollama, etc.)
+│   └── ...
+├── tests/                 # ✅ 150+ comprehensive tests (unit, integration, LLM synthesis)
 └── output/                # ✅ Generated content directory
 ```
 
 ### Phase 2 Architecture Extensions 🎯 CURRENT FOCUS
-```
-LLMarkable/
-├── src/
-│   ├── synthesis/         # 🎯 NEW: LLM integration framework
-│   │   ├── __init__.py
-│   │   ├── synthesizer.py # Content synthesis engine
-│   │   ├── models.py      # LLM model management
-│   │   ├── prompts.py     # Prompt templates and engineering
-│   │   └── validators.py  # Quality validation and checks
-│   ├── pipelines/         # ✅ COMPLETE
-│   └── ...               # ✅ Existing components
-```
+- **LLM Integration**: Abstract provider, chain-based processing, circuit breaker for resilience
+- **TokenManager**: Provider-agnostic token counting, batching, caching, and cost estimation
+- **Comprehensive LLM Integration Tests**: End-to-end tests with mock LLM providers, covering chunk refinement, metadata injection, error handling, and performance
+- **Synthesis Engine Integration**: All pipelines now support optional LLM-powered synthesis with format-specific prompt templates and metadata injection
+- **OpenAIProvider**: Integration in progress (tiktoken-based token counting, robust error handling, async support)
 
 ### Key Classes
 - **Config**: Enhanced dataclass with Phase 2 LLM parameters
 - **BasePipeline**: Abstract class defining process() interface ✅ COMPLETE
 - **Pipeline Implementations**: 5 complete format-specific pipelines ✅ COMPLETE
-- **ContentSynthesizer**: NEW - LLM-powered content enhancement engine
+- **ContentSynthesizer**: LLM-powered content enhancement engine
+- **TokenManager**: Provider-agnostic token counting and cost estimation
 - **CLI**: Enhanced Typer-based interface with `--refine` flag
+
+## Test Coverage (2025-06)
+- **150+ tests**: All major features, including LLM-powered synthesis, TokenManager, and error scenarios
+- **Integration/E2E tests**: Mock LLM provider, chunk refinement, metadata injection, error handling, and performance
+- **All tests run fast, with no file I/O or network calls**
+
+## Plan Status
+- **On track**: No major adjustment needed. Next step is to complete OpenAIProvider, then expand to Anthropic/Gemini as needed. Continue to prioritize test coverage and quality validation for all LLM features.
 
 ## Data Models
 - **Configuration**: Token-based parameters + LLM synthesis settings

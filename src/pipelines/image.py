@@ -189,7 +189,8 @@ class ImagePipeline(BasePipeline):
             ) from err
 
         # Process chunks into final format
-        return self._process_chunks(chunks, input_path)
+        processed_chunks = self._process_chunks(chunks, input_path)
+        return self._maybe_synthesize_chunks(processed_chunks)
 
     def _chunk_document(self, docling_doc: DoclingDocument) -> list[BaseChunk]:
         """

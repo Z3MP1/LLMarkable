@@ -1,0 +1,8 @@
+Summarize the following Markdown section. Focus on improving clarity and grammar, but do not change the meaning or structure.
+
+Section:
+```
+{content}
+```
+
+Return only the improved summary in Markdown format. 

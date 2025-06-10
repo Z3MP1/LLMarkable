@@ -4,6 +4,7 @@ Base abstract class for document conversion pipelines.
 Provides common interface for PDF, HTML, and other format-specific pipelines.
 """
 
+import asyncio
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,8 @@ from docling_core.types.doc.document import DoclingDocument
 from rich.console import Console
 
 from src.config import Config
+from src.synthesis.engine import ContentSynthesizer
+from src.synthesis.providers.factory import ProviderFactory
 from src.utils import (
     extract_text_content,
     get_tokenizer,
@@ -215,3 +218,37 @@ class BasePipeline(ABC):
         """
         # Default implementation - subclasses should override
         return False
+
+    def _maybe_synthesize_chunks(self, chunks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """
+        Optionally refine chunk content using the synthesis engine if config.refine is True.
+
+        Adds synthesis metadata to each chunk if synthesis is performed.
+
+        Args:
+            chunks: List of chunks to refine
+
+        Returns:
+            List of refined chunks.
+
+        """
+        if not self.config.refine:
+            return chunks
+        provider = ProviderFactory.get_provider(self.config)
+        synthesizer = ContentSynthesizer(provider)
+        refined_chunks = []
+        for chunk in chunks:
+            text = chunk["content"] if isinstance(chunk, dict) and "content" in chunk else str(chunk)
+            refined = asyncio.run(synthesizer.refine_chunk(text, self.config))
+            chunk_copy = dict(chunk)
+            chunk_copy["content"] = refined
+            if "metadata" not in chunk_copy:
+                chunk_copy["metadata"] = {}
+            chunk_copy["metadata"].update({
+                "synthesized": True,
+                "llm_provider": self.config.llm_provider,
+                "llm_model": self.config.llm_model,
+                "refinement_level": self.config.refinement_level,
+            })
+            refined_chunks.append(chunk_copy)
+        return refined_chunks

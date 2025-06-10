@@ -5,17 +5,18 @@ from src.config import Config
 from .base import BaseLLMProvider
 from .noop import NoOpProvider
 from .ollama import OllamaProvider
+from .openai import OpenAIProvider
 
 
 class ProviderFactory:
-    """Factory for instantiating the correct LLM provider based on configuration."""
+    """Factory for instantiating the correct LLM provider based on configuration. Supports Ollama, OpenAI, NoOpProvider, and stubs for Anthropic, Google."""
 
     @staticmethod
     def get_provider(config: Config) -> BaseLLMProvider:
         """
         Return an LLM provider instance based on the configuration.
 
-        Supports: Ollama (local), NoOpProvider (default), and stubs for OpenAI, Anthropic, Google.
+        Supports: Ollama (local), OpenAI (cloud), NoOpProvider (default), and stubs for Anthropic, Google.
 
         Args:
             config: The configuration object.
@@ -34,8 +35,7 @@ class ProviderFactory:
         if provider == "ollama":
             return OllamaProvider(config)
         if provider == "openai":
-            msg = "OpenAIProvider is not yet implemented."
-            raise NotImplementedError(msg)
+            return OpenAIProvider(config)
         if provider == "anthropic":
             msg = "AnthropicProvider is not yet implemented."
             raise NotImplementedError(msg)

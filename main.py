@@ -4,6 +4,7 @@ LLMarkable - Document Conversion Tool.
 Transform source files (PDF, HTML, etc.) into remarkable, LLM-friendly Markdown outputs.
 """
 
+import asyncio
 import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -21,6 +22,8 @@ from src.pipelines.factory import (
     get_supported_formats,
     is_supported_format,
 )
+from src.synthesis.engine import ContentSynthesizer
+from src.synthesis.providers.factory import ProviderFactory
 from src.utils import get_tokenizer
 
 app = typer.Typer(
@@ -51,6 +54,8 @@ class CLIOptions:
     artifacts_path: str | None = None
     refine: bool = False
     llm_provider: str | None = None
+    llm_model: str | None = None
+    refinement_level: str | None = None
 
 
 def version_callback(value: bool) -> None:
@@ -180,6 +185,10 @@ def _create_config_from_options(options: CLIOptions) -> Config:
     config.artifacts_path = options.artifacts_path
     config.refine = options.refine
     config.llm_provider = options.llm_provider
+    if options.llm_model is not None:
+        config.llm_model = options.llm_model
+    if options.refinement_level is not None:
+        config.refinement_level = options.refinement_level
 
     return config
 
@@ -228,6 +237,29 @@ def _process_document(input_file: Path, config: Config, output_path: Path) -> No
             # Process document
             progress.update(task, description="Processing document...")
             chunks = pipeline.process(input_file)
+
+            # Synthesis step: refine chunks if requested
+            if config.refine:
+                progress.update(task, description="Refining content with LLM...")
+                provider = ProviderFactory.get_provider(config)
+                synthesizer = ContentSynthesizer(provider)
+                refined_chunks = []
+                for _i, chunk in enumerate(chunks):
+                    if isinstance(chunk, dict) and "content" in chunk and isinstance(chunk["content"], str):
+                        text = chunk["content"]
+                    elif isinstance(chunk, str):
+                        text = chunk
+                    else:
+                        text = str(chunk)
+                    # Use asyncio.run for sync context
+                    refined = asyncio.run(synthesizer.refine_chunk(text, config))
+                    if isinstance(chunk, dict):
+                        chunk_copy = dict(chunk)
+                        chunk_copy["content"] = refined
+                        refined_chunks.append(chunk_copy)
+                    else:
+                        refined_chunks.append(refined)
+                chunks = refined_chunks
 
             progress.update(task, description="Generating output...")
 
@@ -397,6 +429,22 @@ def convert(  # noqa: PLR0913
             help="Path to local model artifacts for offline operation",
         ),
     ] = None,
+    llm_model: Annotated[
+        str | None,
+        typer.Option(
+            "--llm-model",
+            help="LLM model to use for refinement (e.g., gpt-3.5-turbo, llama2-7b)",
+        ),
+    ] = None,
+    refinement_level: Annotated[
+        str | None,
+        typer.Option(
+            "--refinement-level",
+            help="Refinement level for synthesis (choices: light, moderate, aggressive)",
+            show_choices=True,
+            case_sensitive=False,
+        ),
+    ] = None,
     _version: Annotated[
         bool | None,
         typer.Option(
@@ -443,6 +491,8 @@ def convert(  # noqa: PLR0913
         llm_provider=llm_provider,
         pdf_backend=pdf_backend,
         artifacts_path=artifacts_path,
+        llm_model=llm_model,
+        refinement_level=refinement_level,
     )
 
     config = _create_config_from_options(options)

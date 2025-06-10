@@ -16,6 +16,9 @@ The core objective is to produce structured, coherent, and semantically rich Mar
 - **Comprehensive Error Handling**: Robust exception handling with custom error types for different failure scenarios, ensuring graceful degradation and informative error messages.
 - **Type-Safe Development**: Full type annotation coverage with mypy static type checking ensures code reliability and maintainability.
 - **Comprehensive Testing**: Pytest-based testing strategy with fixtures, parametrization, and comprehensive coverage reporting.
+- **AI-Powered Content Synthesis**: Optional LLM-powered chunk refinement and enhancement, with format-specific prompt templates and configurable synthesis levels (light, moderate, aggressive).
+- **Provider-Agnostic Token Management**: TokenManager class for batching, caching, and cost estimation across LLM providers (OpenAI, Ollama, etc.).
+- **Comprehensive LLM Integration Tests**: End-to-end tests with mock LLM providers, covering chunk refinement, metadata injection, error handling, and performance.
 
 ## 3. Project Structure
 
@@ -39,11 +42,11 @@ llmarkable/
 │   │   └── html.py                 # HTML processing pipeline
 │   └── synthesis/
 │       ├── __init__.py
-│       ├── base.py                 # Abstract base synthesis provider
-│       ├── openai.py               # OpenAI-based synthesis provider
-│       ├── anthropic.py            # Anthropic-based synthesis provider
-│       └── gemini.py               # Gemini-based synthesis provider
-│
+│       ├── engine.py               # Content synthesis engine
+│       ├── token_manager.py        # Provider-agnostic token management
+│       ├── prompt_manager.py       # Prompt templates and engineering
+│       ├── providers/              # LLM provider implementations (OpenAI, Ollama, etc.)
+│       └── ...
 ├── tests/                          # Comprehensive test suite
 │   ├── conftest.py                 # Pytest configuration and fixtures
 │   ├── test_config.py              # Configuration validation tests
@@ -51,6 +54,7 @@ llmarkable/
 │   ├── test_html_pipeline_unit.py  # HTML pipeline unit tests
 │   ├── test_chunk_utilities.py     # Utility function tests
 │   ├── test_exceptions.py          # Exception handling tests
+│   ├── test_llm_integration.py     # End-to-end LLM synthesis and error tests
 │   └── htmlcov/                    # Coverage reports (generated)
 ├── main.py                         # CLI entry point (using Typer)
 ├── pyproject.toml                  # Project dependencies and configuration
@@ -140,35 +144,16 @@ python main.py info
 - **Directory Structure**: Clean organization with configurable output modes
 
 #### Testing Infrastructure
- - **Comprehensive Coverage**: 104 tests covering all components
+ - **Comprehensive Coverage**: 150+ tests covering all components, including LLM-powered synthesis and error scenarios
 - **Test Organization**: Dedicated `tests/` directory with proper structure
-- **Quality Standards**: Unit tests only, fast execution, comprehensive mocking
+- **Quality Standards**: Unit and integration tests only, fast execution, comprehensive mocking
 - **Coverage Reporting**: HTML coverage reports with detailed metrics
 
-#### Quality Assurance
-- **Type Safety**: mypy strict mode with full type annotations
-- **Code Quality**: ruff linting with project-specific rules
-- **Exception Testing**: Comprehensive error scenario testing
-
-### 🎯 Feature Highlights
-
-#### Intelligent Chunking
-- **Token-Based Processing**: Configurable tokenizer model (default `BAAI/bge-small-en-v1.5`) for precise token counting
-- **Research-Driven Defaults**: Chunk size (2048 tokens), min tokens (330), overlap (100)
-- **Content Preservation**: Intelligent merging of small chunks to prevent information loss
-- **Quality Filtering**: Automatic filtering of low-quality or minimal content
-
-#### Robust Error Handling
-- **Custom Exception Types**: Specific errors for validation, file access, conversion, chunking
-- **Informative Messages**: Clear error descriptions with actionable guidance
-- **Graceful Fallbacks**: Fallback chunking strategies when primary methods fail
-- **Comprehensive Validation**: Input validation with detailed parameter checking
-
-#### Professional Testing
- - **104 Passing Tests**: Complete coverage of all components and edge cases
-- **Fast Execution**: All tests run in under 4 seconds
-- **Proper Isolation**: Unit tests with comprehensive mocking
-- **Realistic Scenarios**: Tests use actual tokenizer behavior and realistic data
+#### LLM Integration (Phase 2, In Progress)
+- **Synthesis Engine**: Optional LLM-powered chunk refinement, with format-specific prompt templates and configurable synthesis levels
+- **TokenManager**: Provider-agnostic token counting, batching, caching, and cost estimation (OpenAI, Ollama, etc.)
+- **Comprehensive LLM Integration Tests**: End-to-end tests with mock LLM providers, covering chunk refinement, metadata injection, error handling, and performance
+- **OpenAIProvider**: Integration in progress (tiktoken-based token counting, robust error handling, async support)
 
 ## 6. Development Guidelines
 
@@ -176,11 +161,11 @@ python main.py info
 
 This project follows comprehensive testing best practices:
 
-- **Unit Testing Only**: All tests use mocks to avoid external dependencies
+- **Unit & Integration Testing**: All tests use mocks to avoid external dependencies
 - **Fast Execution**: Tests run in milliseconds (under 100ms each)
 - **Test Organization**: Tests are organized in the `tests/` directory with clear naming conventions
 - **Fixtures**: Reusable test fixtures for common setup scenarios in `conftest.py`
- - **Coverage**: Comprehensive test coverage with 104 tests across all components
+ - **Coverage**: Comprehensive test coverage with 150+ tests across all components
 - **Parametrization**: Use of pytest.mark.parametrize for testing multiple scenarios efficiently
 
 #### Running Tests
@@ -199,88 +184,7 @@ pytest tests/test_pdf_pipeline_unit.py
 pytest -v
 ```
 
-### Data Handling & Type Safety
-
-#### Dataclasses for Configuration
-
-We use Python's built-in `dataclasses` for configuration and data structures:
-
-```python
-from dataclasses import dataclass
-
-@dataclass
-class Config:
-    chunk_size: int = 2048
-    min_tokens: int = 330
-    chunk_overlap: int = 100
-    
-    def validate(self) -> None:
-        """Comprehensive validation with specific error messages."""
-        # ... validation logic
-```
-
-**Why dataclasses over Pydantic:**
-- **Simplicity**: No external dependencies for basic data structures
-- **Performance**: Minimal overhead for internal configuration
-- **Type Safety**: Full mypy compatibility out of the box
-- **Standard Library**: Part of Python 3.7+ standard library
-
-#### Type Checking with mypy
-
-All code must pass mypy type checking:
-
-```bash
-# Run type checking
-mypy src/
-
-# Check specific file
-mypy src/pipelines/pdf.py
-```
-
-### Code Quality Standards
-
-#### Development Tools
-
-- **ruff**: For linting and code formatting
-- **mypy**: For static type checking
-- **pytest**: For running tests with coverage
-- **uv**: For fast package management
-
-#### Development Workflow
-
-1. **Write tests first**: Follow TDD principles where appropriate
-2. **Type annotations**: Add type hints to all new code
-3. **Run tests**: Ensure all tests pass before committing
-4. **Type checking**: Verify mypy passes without errors
-5. **Documentation**: Update docstrings and documentation
-
-## 7. Architecture Decisions
-
-### Exception Handling Strategy
-
-Comprehensive custom exception hierarchy:
-
-```python
-# Custom exception types for specific scenarios
-class LLMarkableError(Exception): ...
-class ValidationError(LLMarkableError): ...
-class FileAccessError(LLMarkableError): ...
-class ConversionError(LLMarkableError): ...
-class ChunkingError(ConversionError): ...
-class TokenizerError(LLMarkableError): ...
-```
-
-### Testing Philosophy
-
-Our testing approach prioritizes:
-
-1. **Fast Tests**: Unit tests run quickly to encourage frequent execution
-2. **Isolated Tests**: Each test is independent and can run in any order
-3. **Clear Intent**: Test names clearly describe what is being tested
-4. **Comprehensive Coverage**: All public interfaces and edge cases covered
-5. **Maintainable**: Tests are easy to understand and modify
-
-## 8. Roadmap: Future Development
+## 7. Roadmap: Future Development
 
 ### Phase 2: AI-Powered Content Refinement
 
@@ -290,6 +194,7 @@ The next major phase will implement an AI-augmented synthesis layer:
 - **Content Refinement**: `--refine` flag for intelligent rewriting
 - **Coherent Output**: Single, perfectly structured Markdown document
 - **Prompt Engineering**: Optimized prompts for different document types
+- **OpenAIProvider**: In progress (tiktoken-based token counting, robust error handling, async support)
 
 ### Extensibility Plans
 
@@ -298,39 +203,7 @@ The next major phase will implement an AI-augmented synthesis layer:
 - **Batch Processing**: Multiple file processing capabilities
 - **API Interface**: REST API for programmatic usage
 
-## 9. Contributing
-
-### Development Setup
-
-1. Clone the repository
-2. Install dependencies: `uv sync`
-3. Run tests to verify setup: `pytest`
-4. Run type checking: `mypy src/`
-
-### Pull Request Guidelines
-
-1. All tests must pass
-2. Code must pass mypy type checking
-3. Maintain or improve test coverage
-4. Follow existing code style and patterns
-5. Update documentation for new features
-
-For detailed development guidelines, see [development.md](development.md).
-
-## 10. Current Test Metrics
-
- - **Total Tests**: 104 passing
-- **Execution Time**: Under 4 seconds for full suite
-- **Components Covered**:
-  - Configuration system (20 tests)
-  - PDF pipeline (16 tests)
-  - HTML pipeline (22 tests)
-  - Chunk utilities (25 tests)
-  - Exception handling (20 tests)
-- **Type Safety**: 100% mypy compliance
-- **Quality Standards**: All tests use proper mocking and isolation
-
-## 11. Technical Specifications
+## 8. Technical Specifications
 
 ### Tokenization
 - **Default Model**: BAAI/bge-small-en-v1.5 (384 dimensions, 512 token limit)

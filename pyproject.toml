@@ -36,8 +36,8 @@ exclude = ["tests/*"]
 # Base line length
 line-length = 120
 # Ignore auto-generated files and virtual env
-select = ["ALL"]
-ignore = [
+lint.select = ["ALL"]
+lint.ignore = [
     "S101",      # Use of `assert` detected
     "FBT001",    # Boolean-typed positional argument in function definition
     "D203",      # 1 blank line required before class docstring (conflicts with D211)
@@ -47,13 +47,16 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
-    "ARG001",    # Unused function argument: `args` / `kwargs`
+    "ARG001",    # Unused function argument: `args` 
+    "ARG002",    # Unused function argument: `kwargs`
     "TRY300",    # Consider moving this statement to an `else` block
     "TRY003",    # Avoid specifying long messages outside the exception class
     "E501",      # Line too long (> line-length)
     "EM101",     # Exception must not use a string literal, assign to variable first
     "PT011",     # Raised Exception too broad, use a more specific exception
-    "PLR2004",   # Magic value used in comparison, consider replacing `[value]` with a constant variable
+    "PLR2004",   # Magic value used in comparison, consider using a constant variable
+    "SLF001",    # Private member accessed: `_cache`
+    "ARG005",    # Unused lambda argument
 ]
 
 [tool.pytest.ini_options]

@@ -3,12 +3,11 @@
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-import httpx
 import pytest
 import pytest_asyncio
 
 from src.config import Config
-from src.exceptions import RateLimitError, ProviderError
+from src.exceptions import ProviderError, RateLimitError
 from src.synthesis.providers.ollama import OllamaProvider
 
 
