@@ -19,6 +19,12 @@ The core objective is to produce structured, coherent, and semantically rich Mar
 - **AI-Powered Content Synthesis**: Optional LLM-powered chunk refinement and enhancement, with format-specific prompt templates and configurable synthesis levels (light, moderate, aggressive).
 - **Provider-Agnostic Token Management**: TokenManager class for batching, caching, and cost estimation across LLM providers (OpenAI, Ollama, etc.).
 - **Comprehensive LLM Integration Tests**: End-to-end tests with mock LLM providers, covering chunk refinement, metadata injection, error handling, and performance.
+- **Dynamic Prompt Management**: All LLM synthesis uses dynamic, format/task/level-specific prompt loading from `/prompts` via PromptManager. No hardcoded prompts remain.
+- **Prompt Coverage & Validation**: Automated tests ensure all required prompt templates (summarize, reformat, correct_grammar; light/moderate/aggressive) exist for every supported format. Prompt coverage is enforced and extensible.
+- **Content Validation**: ContentValidator provides real readability scoring (Flesch Reading Ease) and stubs for future factual/structural/semantic checks.
+- **OpenAIProvider**: Streaming, robust error handling, tiktoken-based token counting, async support, and comprehensive tests.
+- **Type-Safe & Lint-Clean**: 100% mypy strict, ruff compliant, all tests pass. No unused ignores or type errors remain.
+- **Extensible LLM Integration**: Ready for Anthropic and Gemini provider integration, as well as new input formats (EPUB, TXT, CSV, XML, JSON, etc.).
 
 ## 3. Project Structure
 
@@ -190,15 +196,17 @@ pytest -v
 
 The next major phase will implement an AI-augmented synthesis layer:
 
-- **LLM Integration**: Local model support (Mistral-7B, Llama, etc.)
+- **LLM Integration**: Local model support (Mistral-7B, Llama, etc.), OpenAI (complete), Anthropic and Gemini (planned)
 - **Content Refinement**: `--refine` flag for intelligent rewriting
 - **Coherent Output**: Single, perfectly structured Markdown document
-- **Prompt Engineering**: Optimized prompts for different document types
-- **OpenAIProvider**: In progress (tiktoken-based token counting, robust error handling, async support)
+- **Prompt Engineering**: Optimized prompts for different document types, enforced by automated tests
+- **Validation**: Automated readability scoring and prompt coverage checks
+- **OpenAIProvider**: Complete (streaming, error handling, token counting, async, tests)
+- **AnthropicProvider & GeminiProvider**: Planned (API integration, prompt support, tests)
 
 ### Extensibility Plans
 
-- **New File Formats**: DOCX, PPTX, images via plugin architecture
+- **New File Formats**: DOCX, PPTX, images (complete); EPUB, TXT, CSV, XML, JSON (planned)
 - **Configuration Files**: YAML/TOML support for complex configurations
 - **Batch Processing**: Multiple file processing capabilities
 - **API Interface**: REST API for programmatic usage
@@ -220,6 +228,63 @@ The next major phase will implement an AI-augmented synthesis layer:
 - **PDF**: Complete support via Docling with format-specific optimizations
 - **HTML**: Complete support with paragraph-based chunking
 - **Extensible**: Plugin architecture ready for additional formats
+
+## 9. Advanced LLM Synthesis: Streaming, Performance, and Troubleshooting
+
+### Streaming with OpenAIProvider
+
+You can stream LLM responses token-by-token using the `stream_generate` method of `OpenAIProvider`:
+
+```python
+from src.synthesis.providers.openai import OpenAIProvider
+from src.config import Config
+import asyncio
+
+async def stream_example():
+    config = Config.default()
+    config.openai_api_key = "sk-..."
+    provider = OpenAIProvider(config)
+    async for chunk in provider.stream_generate("Summarize this text."):
+        print(chunk, end="", flush=True)
+
+# Run the example
+# asyncio.run(stream_example())
+```
+
+This is useful for large outputs or interactive applications.
+
+### Performance Monitoring
+
+The `ContentSynthesizer.refine_chunk` method now returns both the refined content and the time taken (in seconds):
+
+```python
+result, elapsed = await synthesizer.refine_chunk(chunk, config)
+print(f"Synthesis took {elapsed:.2f} seconds")
+```
+
+This helps you monitor and optimize LLM usage.
+
+### Best Practices for Large Documents
+- Use token-based chunking (default: 2048 tokens) to avoid context overflows.
+- For very large documents, process in batches and use streaming to avoid memory spikes.
+- Monitor token usage and cost with the `TokenManager`.
+- Adjust `max_tokens` and `temperature` in config for your use case.
+
+### Migration Guide: Phase 1 → Phase 2
+- **Config changes:** New fields for LLM provider, model, synthesis options (see `src/config.py`).
+- **New features:** LLM-powered synthesis, streaming, token/cost tracking, advanced error handling.
+- **CLI:** Use `--refine` and provider/model flags for synthesis.
+- **Testing:** All LLM features are mock-tested for reliability.
+
+### Troubleshooting LLM Issues
+- **Timeouts:** Increase `max_retries` or check network/API status.
+- **Rate limits:** Use exponential backoff (built-in), or reduce request frequency.
+- **Memory errors:** Lower chunk size, use streaming, or process in smaller batches.
+- **Authentication:** Ensure API keys are set and valid (see `validate_connection`).
+- **Model errors:** Check model name/version and provider documentation.
+
+### Benchmarks (Coming Soon)
+Performance benchmarks for synthesis speed, memory usage, and cost will be published as more data is collected.
 
 
 

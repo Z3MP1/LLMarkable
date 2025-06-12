@@ -354,4 +354,32 @@ class ContentSynthesizer:
 4. **User Control**: Provide granular control over synthesis process
 5. **Performance Focus**: Optimize for speed and efficiency
 6. **Incremental Enhancement**: Gradual rollout of synthesis features
+
+## Phase 2.3: Planned Integrations and Input Expansion (Upcoming)
+
+### Anthropic API Integration
+- Implement AnthropicProvider for cloud LLM synthesis
+- Support for Claude models (e.g., Claude 3)
+- API key management, rate limiting, error handling, and streaming
+- PromptManager integration for Anthropic-specific prompt tuning
+- Automated tests for all AnthropicProvider features (mocked)
+
+### Gemini API Integration
+- Implement GeminiProvider for Google Gemini LLMs (multimodal)
+- API key management, error handling, streaming, and tool use
+- PromptManager integration for Gemini-specific prompt tuning
+- Automated tests for all GeminiProvider features (mocked)
+
+### Additional Input File Formats (Planned)
+- EPUB: eBook support with structure preservation
+- TXT: Plain text file support
+- CSV: Tabular data extraction and chunking
+- XML: Structured document parsing
+- JSON: Semi-structured data extraction
+- (Future extensibility: YAML, Markdown, LaTeX, etc.)
+
+### Validation and Prompt Coverage
+- All new providers and input types must use dynamic prompt management and pass automated prompt coverage tests
+- ContentValidator must be extended to support new formats and providers
+- All new features require 100% mypy strict, ruff compliance, and comprehensive tests
 </PRD> 

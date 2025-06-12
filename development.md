@@ -78,17 +78,18 @@
     - All tests run fast, with no file I/O or network calls
 - **Test Coverage:** 150+ tests, including new integration and e2e tests for LLM synthesis
 
-### Next Steps
-- **Complete OpenAIProvider:**
-    - Implement tiktoken-based token counting
-    - Robust error handling (rate limits, API failures, streaming)
-    - Provider factory integration and async support
-    - Comprehensive unit and integration tests
-- **Expand test coverage for new LLM features**
-- **Monitor Docling for new enrichment support (e.g., PPTX)**
-- **Continue to document key decisions and technical insights for future contributors**
+### June 2025: Phase 2 Milestone
+- **Dynamic Prompt Management:** All synthesis code now uses PromptManager for dynamic, format/task/level-specific prompt loading from `/prompts`. Hardcoded prompts removed.
+- **Prompt Coverage:** All required prompt templates (summarize, reformat, correct_grammar; light/moderate/aggressive) are present for PDF, HTML, Markdown, DOCX, PPTX, and Image. Automated test ensures coverage.
+- **ContentValidator:** Real readability scoring (Flesch Reading Ease) implemented and tested. Stubs for factual accuracy, structure, and semantic similarity in place for future expansion.
+- **OpenAIProvider:** Fully implemented with streaming, robust error handling, tiktoken-based token counting, async support, and comprehensive tests.
+- **Validation:** 100% mypy strict, ruff compliant, all tests pass. No unused ignores or type errors remain.
+- **Extensibility:** Codebase and prompt system are ready for Anthropic and Gemini provider integration, as well as new input formats (EPUB, TXT, CSV, XML, JSON, etc.).
 
-### Plan Adjustment
-- No major adjustment needed. The current plan is on track: finish OpenAIProvider, then expand to Anthropic/Gemini as needed. Continue to prioritize test coverage and quality validation for all LLM features.
+### Next Steps
+- Implement Anthropic and Gemini LLM providers (API integration, prompt support, tests)
+- Add support for additional input file formats (EPUB, TXT, CSV, XML, JSON, etc.)
+- Maintain test coverage, type safety, and prompt/validation rigor
+
 
 *This log tracks major development decisions and technical progress. All valuable historical and technical information is preserved for future reference. For detailed task history, see project management tools or commit logs.*
