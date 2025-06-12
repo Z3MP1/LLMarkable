@@ -1,0 +1,8 @@
+Reformat the following image description. Correct any formatting issues, but do not change the content or structure.
+
+Description:
+```
+{content}
+```
+
+Return only the reformatted text in Markdown format. 

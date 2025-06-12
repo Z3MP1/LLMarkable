@@ -239,7 +239,18 @@ class BasePipeline(ABC):
         refined_chunks = []
         for chunk in chunks:
             text = chunk["content"] if isinstance(chunk, dict) and "content" in chunk else str(chunk)
-            refined = asyncio.run(synthesizer.refine_chunk(text, self.config))
+            # Determine doc_format, task, and refinement_level
+            doc_format = chunk.get("metadata", {}).get("file_type", getattr(self.config, "file_type", "pdf"))
+            task = chunk.get("metadata", {}).get("synthesis_task", "summarize")
+            refinement_level = getattr(self.config, "refinement_level", "moderate")
+            refined, _ = asyncio.run(
+                synthesizer.refine_chunk(
+                    chunk=text,
+                    doc_format=doc_format,
+                    task=task,
+                    refinement_level=refinement_level,
+                ),
+            )
             chunk_copy = dict(chunk)
             chunk_copy["content"] = refined
             if "metadata" not in chunk_copy:
@@ -248,7 +259,7 @@ class BasePipeline(ABC):
                 "synthesized": True,
                 "llm_provider": self.config.llm_provider,
                 "llm_model": self.config.llm_model,
-                "refinement_level": self.config.refinement_level,
+                "refinement_level": refinement_level,
             })
             refined_chunks.append(chunk_copy)
         return refined_chunks

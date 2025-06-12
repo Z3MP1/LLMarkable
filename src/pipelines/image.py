@@ -238,16 +238,32 @@ class ImagePipeline(BasePipeline):
         chunks: list[BaseChunk],
         input_path: Path,
     ) -> list[dict[str, Any]]:
-        """Process image chunks using shared base implementation."""
+        """
+        Process raw chunks into final structured format with enhanced metadata.
+
+        Uses shared processing logic from BasePipeline with Image-specific metadata.
+
+        Args:
+            chunks: List of BaseChunk objects from chunker
+            input_path: Original file path for metadata
+
+        Returns:
+            List of processed chunks with rich metadata
+
+        """
+        # Image-specific additional metadata
+        additional_metadata = {
+            "file_type": "image",
+            "synthesis_task": "summarize",
+        }
+
+        # Use shared processing logic from BasePipeline
         return self._process_chunks_with_metadata(
             chunks=chunks,
             input_path=input_path,
             file_type="image",
-            processing_pipeline="image_ocr_docling",
-            additional_metadata={
-                "image_format": input_path.suffix.lower().lstrip("."),
-                "ocr_engine": self.config.image_ocr_engine,
-            },
+            processing_pipeline="image_docling_optimized",
+            additional_metadata=additional_metadata,
         )
 
     def supports_file(self, file_path: Path) -> bool:

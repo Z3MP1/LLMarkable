@@ -191,10 +191,30 @@ class HTMLPipeline(BasePipeline):
         chunks: list[BaseChunk],
         input_path: Path,
     ) -> list[dict[str, Any]]:
-        """Process HTML chunks using shared base implementation."""
+        """
+        Process raw chunks into final structured format with enhanced metadata.
+
+        Uses shared processing logic from BasePipeline with HTML-specific metadata.
+
+        Args:
+            chunks: List of BaseChunk objects from chunker
+            input_path: Original file path for metadata
+
+        Returns:
+            List of processed chunks with rich metadata
+
+        """
+        # HTML-specific additional metadata
+        additional_metadata = {
+            "file_type": "html",
+            "synthesis_task": "summarize",
+        }
+
+        # Use shared processing logic from BasePipeline
         return self._process_chunks_with_metadata(
             chunks=chunks,
             input_path=input_path,
             file_type="html",
             processing_pipeline="html_docling_optimized",
+            additional_metadata=additional_metadata,
         )

@@ -1,0 +1,8 @@
+Summarize the following PPTX section. Refine for clarity, style, and readability. Minor reorganization is allowed, but preserve the original meaning.
+
+Section:
+```
+{content}
+```
+
+Return only the improved summary in Markdown format. 

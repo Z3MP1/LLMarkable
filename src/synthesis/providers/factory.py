@@ -9,7 +9,11 @@ from .openai import OpenAIProvider
 
 
 class ProviderFactory:
-    """Factory for instantiating the correct LLM provider based on configuration. Supports Ollama, OpenAI, NoOpProvider, and stubs for Anthropic, Google."""
+    """
+    Factory for instantiating the correct LLM provider based on configuration.
+
+    Supports Ollama, OpenAI, NoOpProvider, and stubs for Anthropic, Google.
+    """
 
     @staticmethod
     def get_provider(config: Config) -> BaseLLMProvider:

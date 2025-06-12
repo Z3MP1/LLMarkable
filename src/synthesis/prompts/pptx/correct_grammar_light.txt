@@ -1,0 +1,8 @@
+Correct grammar and improve clarity in the following PPTX section. Do not change the meaning or structure.
+
+Section:
+```
+{content}
+```
+
+Return only the corrected text in Markdown format. 

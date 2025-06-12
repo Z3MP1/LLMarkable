@@ -1,0 +1,8 @@
+Reformat the following DOCX section. Correct any formatting issues, but do not change the content or structure.
+
+Section:
+```
+{content}
+```
+
+Return only the reformatted text in Markdown format. 

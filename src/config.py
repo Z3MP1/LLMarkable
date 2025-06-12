@@ -246,7 +246,7 @@ class Config:
                 field_value=self.tokenizer_model,
             )
 
-    def _validate_synthesis_settings(self) -> None:
+    def _validate_synthesis_settings(self) -> None:  # noqa: C901
         """Validate LLM synthesis and provider-related settings."""
         from .exceptions import ValidationError
 

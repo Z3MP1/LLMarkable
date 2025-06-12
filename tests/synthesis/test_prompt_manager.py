@@ -46,3 +46,20 @@ def test_format_template_missing_var_raises(manager: PromptManager) -> None:
     template = "Summarize: {content}"
     with pytest.raises(KeyError):
         manager.format_template(template)
+
+def test_all_required_templates_exist() -> None:
+    """Test that all required prompt templates exist for each format and task."""
+    base_dir = Path("src/synthesis/prompts")
+    formats = ["pdf", "html", "markdown", "docx", "pptx", "image"]
+    tasks = ["summarize", "reformat", "correct_grammar"]
+    levels = ["light", "moderate", "aggressive"]
+    # Only summarize has all levels; others only light
+    for fmt in formats:
+        for task in tasks:
+            if task == "summarize":
+                for level in levels:
+                    path = base_dir / fmt / f"{task}_{level}.txt"
+                    assert path.exists(), f"Missing: {path}"
+            else:
+                path = base_dir / fmt / f"{task}_light.txt"
+                assert path.exists(), f"Missing: {path}"

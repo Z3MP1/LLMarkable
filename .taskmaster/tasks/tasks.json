@@ -523,7 +523,7 @@
         10,
         11
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -532,13 +532,109 @@
       "description": "Create OpenAI provider implementation with API integration, token counting, and provider factory selection logic to enable cloud-based LLM synthesis capabilities.",
       "details": "Implement OpenAIProvider class in src/synthesis/providers/openai.py inheriting from BaseLLMProvider. Add required methods: generate() using OpenAI Chat Completions API with proper message formatting, get_token_count() using tiktoken library for accurate token counting, and validate_connection() for API key verification. Configure API client with user's API key from config, implement proper error handling for rate limits and API failures, and add support for different OpenAI models (gpt-3.5-turbo, gpt-4, etc.). Update ProviderFactory in src/synthesis/providers/__init__.py to include OpenAI provider selection logic with 'openai' identifier. Add configuration options for model selection, temperature, max_tokens, and other OpenAI-specific parameters. Implement proper async support and streaming capabilities if needed. Include comprehensive error messages for authentication failures, quota exceeded, and model availability issues. Add logging for API usage tracking and debugging purposes.",
       "testStrategy": "Create unit tests in tests/test_openai_provider.py with mock OpenAI API responses using pytest-mock. Test generate() method with various input types and verify proper message formatting and response parsing. Test get_token_count() accuracy against known token counts for different text samples. Mock API failures (authentication, rate limiting, network errors) and verify proper error handling and retry mechanisms. Test provider factory integration by verifying OpenAI provider can be instantiated with 'openai' identifier. Create integration tests with real OpenAI API calls (using test API key) to validate end-to-end functionality. Test different model configurations and parameter settings. Verify token counting accuracy matches OpenAI's actual usage. Test synthesis workflow integration by running content synthesis with OpenAI provider and validating output quality and structure preservation.",
-      "status": "in-progress",
+      "status": "done",
       "dependencies": [
         1,
         8
       ],
       "priority": "medium",
       "subtasks": []
+    },
+    {
+      "id": 14,
+      "title": "Integrate and Expand Prompt Management for LLM Synthesis",
+      "description": "Refactor PromptManager to load prompt templates from the /prompts directory, expand prompt coverage, and optionally implement ContentValidator for automated quality checks.",
+      "details": "1. Integrate PromptManager with /prompts directory for dynamic prompt loading based on file type and refinement level. 2. Review and expand prompt files to ensure coverage for all formats and tasks. 3. (Optional) Implement ContentValidator for automated quality checks. Pre-validate with firecrawl_search for best practices, post-validate with tests, mypy, and ruff.",
+      "testStrategy": "",
+      "status": "done",
+      "dependencies": [],
+      "priority": "high",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Integrate PromptManager with /prompts directory for dynamic prompt loading",
+          "description": "Refactor PromptManager to load prompt templates from the /prompts directory based on file type and refinement level. Fallback to hardcoded templates if no file is found.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 14
+        },
+        {
+          "id": 2,
+          "title": "Review and expand prompt files for all formats and tasks",
+          "description": "Ensure prompt files in /prompts cover all supported formats (pdf, html, markdown, etc.) and all relevant synthesis/refinement tasks. Add or update prompt templates as needed.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 14
+        },
+        {
+          "id": 3,
+          "title": "Implement ContentValidator for automated quality checks (optional)",
+          "description": "Implement or stub ContentValidator methods for factual accuracy, structure preservation, information loss, readability, and semantic similarity. Integrate with pipeline if feasible.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 14
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Implement and Validate Full Dynamic Prompt Management and Content Validation",
+      "description": "Ensure all synthesis code uses dynamic prompt loading, expand prompt template coverage, implement ContentValidator logic, and add/expand tests. Post-validate with mypy and ruff.",
+      "details": "1. Audit and refactor all synthesis code to use PromptManager and dynamic prompt loading. 2. Expand and verify prompt templates for all formats and tasks. 3. Implement at least one real check in ContentValidator. 4. Add or expand tests for new/changed logic. 5. Post-validate with mypy, ruff, and test suite.",
+      "testStrategy": "",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "high",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Audit and refactor all synthesis code to use PromptManager and dynamic prompt loading",
+          "description": "Ensure every code path that generates prompts for LLM synthesis uses PromptManager and loads templates dynamically from /prompts. Remove or refactor any hardcoded prompt logic.",
+          "details": "<info added on 2025-06-12T11:59:30.343Z>\nRefactor plan clarified: (1) Remove the old PromptManager from engine.py. (2) Update ContentSynthesizer to use the new PromptManager from prompt_manager.py, passing the prompts directory and using get_template/format_template for prompt construction. (3) Update all pipeline code (via BasePipeline and/or direct calls) to pass the correct format/task/refinement info to synthesis. (4) Ensure fallback to default/hardcoded prompt if template is missing. (5) Test integration to ensure all LLM-powered synthesis uses dynamic prompt loading.\n</info added on 2025-06-12T11:59:30.343Z>",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 15
+        },
+        {
+          "id": 2,
+          "title": "Expand and verify prompt templates for all formats and tasks",
+          "description": "Review the /prompts directory and ensure there is coverage for all supported formats (pdf, html, markdown, etc.) and all relevant synthesis/refinement tasks. Add or update prompt templates as needed.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 15
+        },
+        {
+          "id": 3,
+          "title": "Implement at least one real check in ContentValidator",
+          "description": "Implement a real validation method in ContentValidator (e.g., readability score or semantic similarity) instead of just stubs. Integrate with pipeline if feasible.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 15
+        },
+        {
+          "id": 4,
+          "title": "Add or expand tests for new/changed logic",
+          "description": "Add or expand unit and integration tests to cover dynamic prompt loading, prompt coverage, and ContentValidator logic. Use mocks and ensure tests are fast and isolated.",
+          "details": "",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 15
+        },
+        {
+          "id": 5,
+          "title": "Post-validate with mypy, ruff, and test suite",
+          "description": "Run mypy (strict), ruff, and the test suite to ensure type safety, code style, and correctness after all changes.",
+          "details": "",
+          "status": "in-progress",
+          "dependencies": [],
+          "parentTaskId": 15
+        }
+      ]
     }
   ]
 }

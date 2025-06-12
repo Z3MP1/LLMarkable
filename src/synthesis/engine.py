@@ -1,40 +1,11 @@
 """Synthesize content using an LLM provider."""
 
-from src.config import Config
+import re
+import time
+from pathlib import Path
+
+from src.synthesis.prompt_manager import PromptManager
 from src.synthesis.providers.base import BaseLLMProvider
-
-
-class PromptManager:
-    """Manages prompt template selection for content synthesis based on refinement level."""
-
-    def get_prompt(self, refinement_level: str, chunk: str) -> str:
-        """
-        Return the appropriate prompt for the given refinement level and chunk.
-
-        Args:
-            refinement_level (str): The synthesis refinement level (light, moderate, aggressive).
-            chunk (str): The content chunk to refine.
-
-        Returns:
-            str: The formatted prompt.
-
-        """
-        if refinement_level == "light":
-            prompt_template = (
-                "Improve clarity and grammar of the following text, "
-                "but do not change its meaning or structure.\n\n{text}\n"
-            )
-        elif refinement_level == "aggressive":
-            prompt_template = (
-                "Rewrite the following text to be concise, well-structured, and engaging. "
-                "You may reorganize or rephrase as needed, but preserve all key information.\n\n{text}\n"
-            )
-        else:  # moderate (default)
-            prompt_template = (
-                "Refine the following text for clarity, style, and readability. "
-                "Minor reorganization is allowed, but preserve the original meaning.\n\n{text}\n"
-            )
-        return prompt_template.format(text=chunk)
 
 
 class ContentSynthesizer:
@@ -45,33 +16,42 @@ class ContentSynthesizer:
     and will orchestrate content enhancement using chainable operations (LCEL patterns).
     """
 
-    def __init__(self, provider: BaseLLMProvider, prompt_manager: PromptManager | None = None) -> None:
+    def __init__(self, provider: BaseLLMProvider, prompts_dir: str | Path = "src/synthesis/prompts") -> None:
         """
         Initialize the ContentSynthesizer with a provider instance and optional PromptManager.
 
         Args:
             provider (BaseLLMProvider): The LLM provider to use for synthesis operations.
-            prompt_manager (PromptManager | None): Optional prompt manager for prompt selection.
+            prompts_dir (str | Path): The directory containing prompt templates.
 
         """
         self.provider = provider
-        self.prompt_manager = prompt_manager or PromptManager()
+        self.prompt_manager = PromptManager(prompts_dir)
 
-    async def refine_chunk(self, chunk: str, config: Config, **options: object) -> str:
+    async def refine_chunk(
+        self,
+        chunk: str,
+        doc_format: str = "pdf",
+        task: str = "summarize",
+        refinement_level: str = "moderate",
+        **options: object,
+    ) -> tuple[str, float]:
         """
         Refine a content chunk using the LLM provider and synthesis options.
 
-        Args:
-            chunk (str): The content chunk to refine.
-            config (Config): The configuration object with synthesis options.
-            **options: Additional synthesis options.
-
-        Returns:
-            str: The refined content.
-
+        Loads the prompt template dynamically based on doc_format, task, and refinement_level.
+        Falls back to a default prompt if template is missing.
         """
-        prompt = self.prompt_manager.get_prompt(config.refinement_level, chunk)
-        return await self.provider.generate(prompt, **options)
+        try:
+            template = self.prompt_manager.get_template(doc_format, task, refinement_level)
+            prompt = self.prompt_manager.format_template(template, content=chunk)
+        except (FileNotFoundError, KeyError):
+            # Fallback to a simple default prompt
+            prompt = f"Refine the following text for clarity and readability.\n\n{chunk}\n"
+        start = time.perf_counter()
+        result = await self.provider.generate(prompt, **options)
+        elapsed = time.perf_counter() - start
+        return result, elapsed
 
 
 class ContentValidator:
@@ -94,7 +74,7 @@ class ContentValidator:
         Returns:
             bool: True if factual accuracy is preserved, False otherwise.
 
-        """
+        """  # noqa: D205
         raise NotImplementedError
 
     def check_structure_preservation(self, original: str, synthesized: str) -> bool:
@@ -109,7 +89,7 @@ class ContentValidator:
         Returns:
             bool: True if structure is preserved, False otherwise.
 
-        """
+        """  # noqa: D205
         raise NotImplementedError
 
     def detect_information_loss(self, original: str, synthesized: str) -> bool:
@@ -124,21 +104,31 @@ class ContentValidator:
         Returns:
             bool: True if information loss is detected, False otherwise.
 
-        """
+        """  # noqa: D205
         raise NotImplementedError
 
     def readability_score(self, text: str) -> float:
         """
-        Compute a readability score (e.g., Flesch-Kincaid) for the given text.
+        Compute a Flesch Reading Ease score for the given text.
 
         Args:
             text (str): The text to score.
 
         Returns:
-            float: The readability score.
+            float: The Flesch Reading Ease score (higher is easier to read).
 
         """
-        raise NotImplementedError
+        # Basic sentence, word, syllable count (approximate, no external deps)
+        sentences = re.split(r"[.!?]+", text)
+        sentences = [s for s in sentences if s.strip()]
+        words = re.findall(r"\w+", text)
+        syllables = sum(len(re.findall(r"[aeiouyAEIOUY]+", word)) for word in words)
+        num_sentences = max(len(sentences), 1)
+        num_words = max(len(words), 1)
+        num_syllables = max(syllables, 1)
+        # Flesch Reading Ease formula
+        score = 206.835 - 1.015 * (num_words / num_sentences) - 84.6 * (num_syllables / num_words)
+        return round(score, 2)
 
     def semantic_similarity(self, original: str, synthesized: str) -> float:
         """
@@ -152,5 +142,5 @@ class ContentValidator:
         Returns:
             float: Similarity score between 0 and 1.
 
-        """
+        """  # noqa: D205
         raise NotImplementedError

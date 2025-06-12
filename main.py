@@ -221,7 +221,7 @@ def _validate_and_create_output_dir(config: Config) -> Path:
     return output_path
 
 
-def _process_document(input_file: Path, config: Config, output_path: Path) -> None:
+def _process_document(input_file: Path, config: Config, output_path: Path) -> None:  # noqa: C901, PLR0915, PLR0912
     """Process the document and save output."""
     try:
         with Progress(
@@ -252,7 +252,18 @@ def _process_document(input_file: Path, config: Config, output_path: Path) -> No
                     else:
                         text = str(chunk)
                     # Use asyncio.run for sync context
-                    refined = asyncio.run(synthesizer.refine_chunk(text, config))
+                    metadata = chunk.get("metadata", {}) if isinstance(chunk, dict) else {}
+                    doc_format = metadata.get("file_type", getattr(config, "file_type", "pdf"))
+                    task = metadata.get("synthesis_task", "summarize")
+                    refinement_level = getattr(config, "refinement_level", "moderate")
+                    refined, _ = asyncio.run(
+                        synthesizer.refine_chunk(
+                            chunk=text,
+                            doc_format=doc_format,
+                            task=task,
+                            refinement_level=refinement_level,
+                        ),
+                    )
                     if isinstance(chunk, dict):
                         chunk_copy = dict(chunk)
                         chunk_copy["content"] = refined
