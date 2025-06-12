@@ -370,13 +370,15 @@ class ContentSynthesizer:
 - PromptManager integration for Gemini-specific prompt tuning
 - Automated tests for all GeminiProvider features (mocked)
 
-### Additional Input File Formats (Planned)
-- EPUB: eBook support with structure preservation
-- TXT: Plain text file support
-- CSV: Tabular data extraction and chunking
-- XML: Structured document parsing
-- JSON: Semi-structured data extraction
-- (Future extensibility: YAML, Markdown, LaTeX, etc.)
+### Additional Input File Formats (Docling-Supported)
+- PDF: Portable Document Format (`.pdf`)  ✅ Implemented
+- DOCX: Microsoft Word (`.docx`)  ✅ Implemented
+- HTML/HTM: HyperText Markup Language (`.html`, `.htm`)  ✅ Implemented
+- PPTX: Microsoft PowerPoint (`.pptx`)  ✅ Implemented
+- Image: PNG, JPG, JPEG, TIFF, TIF, BMP, GIF  ✅ Implemented
+- CSV: Comma-Separated Values (`.csv`)  🟡 Planned (not yet in LLMarkable)
+- XML: JATS/PMC (`.nxml`, `.xml`), USPTO patent XML (`.xml`)  🟡 Planned (not yet in LLMarkable)
+- (Extensibility: EPUB, TXT, JSON, Markdown, LaTeX, etc. are NOT currently supported as input by Docling)
 
 ### Validation and Prompt Coverage
 - All new providers and input types must use dynamic prompt management and pass automated prompt coverage tests
